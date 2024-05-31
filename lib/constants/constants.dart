@@ -22,10 +22,13 @@ const String welcomeRoute = '/';
 const String loginRoute = '/logIn';
 const String signupRoute = '/signUp';
 const String bwyRoute = '/bwy';
-const String scanRoute = '/scan';
-const String savedRoute = '/saved';
+const String mediaRoute = '/media';
+const String announcementRoute = '/announcement';
 const String profileRoute = '/profile';
 const String validationRoute = '/validation';
+const String sampleReport = '/sampleReport';
+const String reportsRoute = '/reports';
+const String contactRoute = '/contact';
 
 class ApiConstants {
   ApiConstants._();

@@ -11,6 +11,7 @@ mixin MixinCardFeature {
   Future<Resource<List<CardModel>>> getCards() async {
     final restClient = RestClient.create();
     var value = await restClient.getCards({"userId": "1"});
+    Duration(seconds: 10);
     if (value.status == Status.SUCCESS) {
       return Resource.success(value.data!);
     } else {

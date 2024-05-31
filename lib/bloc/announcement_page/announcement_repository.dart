@@ -2,9 +2,9 @@ import '../../models/card_model.dart';
 import '../../utils/generator.dart';
 import '../../utils/resource.dart';
 
-class SavedRepository {
+class AnnouncementRepository {
   RestClient client;
-  SavedRepository(this.client);
+  AnnouncementRepository(this.client);
 
   // Future<Resource<List<CardModel>>> getServices() async {
   //   final restClient = RestClient.create();

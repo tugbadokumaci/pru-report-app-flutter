@@ -93,6 +93,13 @@ class CustomTextStyles2 {
           fontWeight: FontWeight.bold,
         );
   }
+
+  static TextStyle drawerTitleTextStyle(BuildContext context) {
+    return Theme.of(context)
+        .textTheme
+        .headlineSmall!
+        .copyWith(fontFamily: 'Inter', fontWeight: FontWeight.bold, color: Colors.white, fontSize: 17);
+  }
 }
 
 

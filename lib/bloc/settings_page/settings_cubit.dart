@@ -5,25 +5,25 @@ import '../../constants/constants.dart';
 import '../../shared_preferences_service.dart';
 import '../../utils/resource.dart';
 import '../../utils/utils.dart';
-import 'profile_repository.dart';
-import 'profile_state.dart';
+import 'settings_repository.dart';
+import 'settings_state.dart';
 
-class ProfileCubit extends Cubit<ProfileState> {
+class SettingsCubit extends Cubit<SettingsState> {
   final ProfileRepository _repo;
-  ProfileCubit({
+  SettingsCubit({
     required ProfileRepository repo,
   })  : _repo = repo,
-        super(ProfileInitial());
+        super(SettingsInitial());
 
   TextEditingController passwordController = TextEditingController();
   TextEditingController passwordAgainController = TextEditingController();
 
   Future<void> getProfile() async {
-    emit(ProfileSuccess());
+    emit(SettingsSuccess());
   }
 
   Future<void> goPasswordPage() async {
-    emit(ProfilePasswordChange());
+    emit(SettingsPasswordChange());
   }
 
   Future<void> deleteAccount(BuildContext context) async {
@@ -55,7 +55,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         onTap: () {
           passwordAgainController.text == '';
           passwordController.text = '';
-          emit(ProfileSuccess());
+          emit(SettingsSuccess());
           Navigator.of(context).pop();
         },
       );
@@ -88,7 +88,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       //   gravity: ToastGravity.TOP,
       // );
     } else {
-      emit(ProfileLoading());
+      emit(SettingsLoading());
       Resource<bool> resource = await _repo.changePassword(passwordController.text);
       if (resource.status == Status.SUCCESS) {
         // const güncelle
@@ -103,7 +103,7 @@ class ProfileCubit extends Cubit<ProfileState> {
           onTap: () {
             passwordAgainController.text == '';
             passwordController.text = '';
-            emit(ProfileSuccess());
+            emit(SettingsSuccess());
             Navigator.of(context).pop();
           },
         );
@@ -123,7 +123,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> logOut() async {
-    emit(ProfileLoading());
+    emit(SettingsLoading());
     SharedPreferencesService.clearLocalStorage();
   }
 }

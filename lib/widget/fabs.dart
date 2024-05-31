@@ -13,7 +13,7 @@ class FABs {
       onPressed: () {
         Navigator.pushNamed(context, '/home');
       },
-      child: Icon(Icons.add, color: Colors.white),
+      child: Icon(Icons.search, color: Colors.white),
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../models/card_model.dart';
+import '../models/report_model.dart';
 import '../models/user_model.dart';
 import '../constants/constants.dart';
 
@@ -21,7 +22,14 @@ abstract class RestClient {
     return RestClient(dio);
   }
 
-  @GET('/qr_code_app/getcards.php')
+  @POST('/pru/getallreports.php')
+  @Headers(<String, dynamic>{
+    "Content-Type": "application/json",
+    "charset": "utf-8",
+  })
+  Future<Resource<List<ReportModel>>> getAllReports();
+
+  @POST('/qr_code_app/getcards.php')
   @Headers(<String, dynamic>{
     "Content-Type": "application/json",
     "charset": "utf-8",

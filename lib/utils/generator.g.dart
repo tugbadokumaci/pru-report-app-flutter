@@ -19,6 +19,54 @@ class _RestClient implements RestClient {
   final Dio _dio;
 
   String? baseUrl;
+  @override
+  Future<Resource<List<ReportModel>>> getAllReports() async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{
+      r'Content-Type': 'application/json',
+      r'charset': 'utf-8',
+    };
+    _headers.removeWhere((k, v) => v == null);
+    final _data = <String, dynamic>{};
+    try {
+      Response<String> _result = await _dio.fetch<String>(
+        _setStreamType<String>(
+          Options(
+            method: 'POST',
+            headers: _headers,
+            extra: _extra,
+            contentType: 'application/json',
+          )
+              .compose(
+                _dio.options,
+                '/pru/getallreports.php',
+                queryParameters: queryParameters,
+                data: _data,
+              )
+              .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+        ),
+      );
+      final dynamic jsonData = json.decode(_result.data.toString());
+
+      // JSON nesnesini User Model listesine dönüştür
+      final List<ReportModel> value =
+          (jsonData as List<dynamic>).map((dynamic i) => ReportModel.fromJson(i as Map<String, dynamic>)).toList();
+      return Resource.success(value);
+    } catch (e) {
+      print(e);
+      if (e is DioException) {
+        if (e.response?.statusCode == 401) {
+          return Resource.error(e.response?.statusMessage ?? 'UNAUTHORIZAİED', e.response?.statusCode);
+        } else if (e.response?.statusCode == 400) {
+          return Resource.error(
+              json.decode(e.response!.data.toString())['message'] ?? ' WRONG METHOD', e.response?.statusCode);
+        }
+      }
+      // Hata durumunda boş bir ServiceModel döndürebilirsiniz veya isteğe göre yönetebilirsiniz.
+      return Resource.error('Lütfen internet bağlantınızı kontrol edin', null);
+    }
+  }
 
   @override
   Future<Resource<List<CardModel>>> getCards(Map<String, dynamic> userId) async {

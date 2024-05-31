@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qr_code_app/bloc/saved_page/saved_repository.dart';
+import 'package:qr_code_app/bloc/announcement_page/announcement_repository.dart';
 
 import '../../models/card_model.dart';
 import '../../utils/resource.dart';
-import 'saved_state.dart';
+import 'announcement_state.dart';
 
-class SavedCubit extends Cubit<SavedState> {
-  final SavedRepository _repo;
+class AnnouncementCubit extends Cubit<AnnouncementState> {
+  final AnnouncementRepository _repo;
 
   late Resource<List<CardModel>> savedCardResource;
-  SavedCubit({
-    required SavedRepository repo,
+  AnnouncementCubit({
+    required AnnouncementRepository repo,
   })  : _repo = repo,
-        super(SavedInitial());
+        super(AnnouncementInitial());
 
   Future<void> getSavedCards() async {
-    emit(SavedLoading());
+    emit(AnnouncementLoading());
 
     savedCardResource = await _repo.getSavedCards();
     if (savedCardResource.status == Status.SUCCESS) {
-      emit(SavedSuccess(savedCardResource: savedCardResource));
+      emit(AnnouncementSuccess(savedCardResource: savedCardResource));
       debugPrint('get services success');
     } else {
       debugPrint('Error while fetching service data');
-      emit(SavedError());
+      emit(AnnouncementError());
     }
   }
 }
