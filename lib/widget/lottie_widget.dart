@@ -8,7 +8,7 @@ class LottieWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Lottie.asset(
-      'animations/$path.json',
+      '/assets/animations/$path.json',
       height: 200,
       reverse: false,
       repeat: true,

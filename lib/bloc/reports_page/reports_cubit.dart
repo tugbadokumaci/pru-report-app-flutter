@@ -27,4 +27,8 @@ class ReportsCubit extends Cubit<ReportsState> {
       emit(ReportsError());
     }
   }
+
+  Future<void> goToDetail(ReportModel report) async {
+    emit(ReportsDetail(report: report));
+  }
 }

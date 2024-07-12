@@ -13,4 +13,10 @@ class ReportsSuccess extends ReportsState {
   ReportsSuccess({required this.reportResource});
 }
 
+class ReportsDetail extends ReportsState {
+  final ReportModel report;
+
+  ReportsDetail({required this.report});
+}
+
 class ReportsError extends ReportsState {}

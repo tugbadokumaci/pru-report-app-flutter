@@ -17,6 +17,7 @@ const EdgeInsets kHorizontalPadding = EdgeInsets.symmetric(horizontal: 15.0);
 const EdgeInsets kVerticalPadding = EdgeInsets.symmetric(vertical: 15.0);
 const EdgeInsets kAllPadding = EdgeInsets.all(15.0);
 
+const String splashRoute = '/splash';
 const String homeRoute = '/home';
 const String welcomeRoute = '/';
 const String loginRoute = '/logIn';

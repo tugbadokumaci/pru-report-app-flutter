@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_code_app/bloc/reports_page/reports_view.dart';
 import 'package:qr_code_app/sample_report.dart';
+import 'package:qr_code_app/splash_screen.dart';
 
 import 'bloc/home_page/home_cubit.dart';
 import 'bloc/home_page/home_repository.dart';
@@ -28,6 +29,8 @@ import 'service_locator.dart';
 class RouteGenerator {
   static Route<dynamic> GenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case splashRoute:
+        return MaterialPageRoute(settings: settings, builder: (_) => SplashScreen());
       case homeRoute:
         return MaterialPageRoute(
             settings: settings, builder: (_) => HomeView(viewModel: HomeCubit(repo: locator.get<HomeRepository>())));

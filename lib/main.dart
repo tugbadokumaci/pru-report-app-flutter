@@ -71,7 +71,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       onGenerateRoute: RouteGenerator.GenerateRoute,
-      initialRoute: homeRoute,
+      initialRoute: splashRoute,
     );
   }
 }
