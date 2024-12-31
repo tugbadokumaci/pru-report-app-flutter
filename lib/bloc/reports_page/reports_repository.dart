@@ -1,15 +1,14 @@
 import 'package:qr_code_app/utils/generator.dart';
-
-import '../../models/report_model.dart';
+import '../../models/post_model.dart';
 import '../../utils/resource.dart';
 
 class ReportsRepository {
   RestClient client;
   ReportsRepository(this.client);
 
-  Future<Resource<List<ReportModel>>> getAllReports() async {
+  Future<Resource<List<PostModel>>> getAllPosts() async {
     final restClient = RestClient.create();
-    var value = await restClient.getAllReports();
+    var value = await restClient.getAllPosts();
     if (value.status == Status.SUCCESS) {
       return Resource.success(value.data!);
     } else {

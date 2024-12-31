@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "440925325651",
+    "project_id": "pru-project-9839a",
+    "storage_bucket": "pru-project-9839a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:440925325651:android:a1c59186e708f4f860f9a6",
+        "android_client_info": {
+          "package_name": "com.example.qr_code_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXU5ah11sjt58D4XKvx7U52gWY8s0uB9Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

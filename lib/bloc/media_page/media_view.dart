@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qr_code_app/utils/box_constrains.dart';
-import 'package:qr_code_app/widget/button.dart';
-import 'package:qr_code_app/widget/container.dart';
+import 'package:qr_code_app/bloc/media_page/media_state.dart';
 
-import '../../bottom_nav_bar.dart';
-import '../../constants/constants.dart';
+import '../../enum/pages_enum.dart';
+import '../../models/news_model.dart';
+import '../../utils/custom_bottom_nav_bar.dart';
 import '../../utils/custom_colors.dart';
 import '../../utils/custom_text_styles.dart';
-import '../../widget/box.dart';
+import '../../utils/news_card.dart';
 import '../../widget/lottie_widget.dart';
+import '../news_page/news_view.dart';
 import 'media_cubit.dart';
-import 'media_state.dart';
 
 class VideoItem {
   final String imagePath;
@@ -34,22 +33,7 @@ class MediaView extends StatefulWidget {
 }
 
 class _MediaViewState extends State<MediaView> with TickerProviderStateMixin {
-  int _selectedIndexDrawer = 0;
-  static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Görünüm',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Limanlar, Deniz ve Açık Deniz',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: Gemi İnşaa/Bakım Onarım/Geri Dönüşüm',
-      style: optionStyle,
-    ),
-  ];
+  final int _selectedIndexDrawer = 0;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -57,57 +41,13 @@ class _MediaViewState extends State<MediaView> with TickerProviderStateMixin {
     });
   }
 
-  List<VideoItem> videoItems = [
-    VideoItem(
-      imagePath: 'assets/images/video1.png',
-      title: 'Piri Reis Üniversitesi Rektörü Prof. Dr. Nafiz ...',
-      description: '0:28',
-    ),
-    VideoItem(
-      imagePath: 'assets/images/video2.png',
-      title: 'Denizcilik Meslek Yüksekokulu Müdürü ...',
-      description: '1:09',
-    ),
-    VideoItem(
-      imagePath: 'assets/images/video3.png',
-      title: 'Simülatör Merkezi Müdürü Sinan Tunçay’ın mesajı ...',
-      description: '0:50',
-    ),
-    VideoItem(
-      imagePath: 'assets/images/video4.png',
-      title: 'Lisansüstü Eğitim Enstitüsü Öğretim Üyesi ...',
-      description: '1:16',
-    ),
-  ];
-
-  List<VideoItem> newsItems = [
-    VideoItem(
-      imagePath: 'assets/images/haber1.png',
-      title: 'Üniversitemiz Öğretim Üyesi Doç. Dr. Orhan Özgür Aybar’ın yürütücüsü ...',
-      description: 'Mayıs 3, 2024',
-    ),
-    VideoItem(
-      imagePath: 'assets/images/haber2.png',
-      title: 'DMYO CanSALI Buluşmaları’nın 8. Faaliyeti Gerçekleştirildi',
-      description: 'Mayıs 2, 2024',
-    ),
-    VideoItem(
-      imagePath: 'assets/images/haber3.png',
-      title: 'Deniz Brokerliği öğrencilerimiz Asya Port Limanını ziyaret etti',
-      description: 'Nisan 24, 2024',
-    ),
-    VideoItem(
-      imagePath: 'assets/images/haber4.png',
-      title: 'TÜBİTAK Ulusal Metroloji Enstitüsü’ne Teknik Gezi.',
-      description: 'Nisan 22, 2024',
-    ),
-  ];
   late final TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this); // Length is set to 3 for three tabs
+    widget.viewModel.getAllNews();
   }
 
   @override
@@ -120,326 +60,337 @@ class _MediaViewState extends State<MediaView> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<MediaCubit>(create: (_) => widget.viewModel, child: _buildScaffold(context));
+    return BlocProvider<MediaCubit>(
+        create: (_) => widget.viewModel,
+        child: BlocConsumer<MediaCubit, MediaState>(
+          listener: (context, state) {
+            if (state is MediaDetail) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewsDetailView(news: state.news),
+                ),
+              ).then((_) {
+                // Haber detayından geri dönüldüğünde haber listesini yenile
+                context.read<MediaCubit>().getAllNews();
+              });
+            }
+          },
+          builder: (context, state) {
+            if (state is MediaLoading) {
+              return _buildLoading(context);
+            } else if (state is MediaSuccess) {
+              return _buildSuccess(context, state);
+            } else if (state is MediaError) {
+              return _buildError(context);
+            }
+            return Container();
+          },
+        ));
   }
 
-  SafeArea _buildScaffold(BuildContext context) {
+  SafeArea _buildSuccess(BuildContext context, MediaSuccess state) {
     return SafeArea(
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'Medya',
-            style: CustomTextStyles2.appBarTextStyle(context),
-          ),
-          bottom: TabBar(
-            controller: _tabController,
-            dividerColor: Colors.transparent,
-            labelColor: Colors.black,
-            unselectedLabelColor: Color(0xff454E59),
-            indicatorColor: Colors.black,
-            tabs: const <Widget>[
-              Tab(
-                text: 'Videolar',
-                icon: Icon(Icons.videocam),
-              ),
-              Tab(
-                text: 'Haberler',
-                icon: Icon(Icons.newspaper),
-              ),
-            ],
-          ),
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-          leading: Builder(
-            builder: (context) {
-              return IconButton(
-                icon: Icon(Icons.menu, color: CustomColors.pruBlue),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              );
-            },
-          ),
-        ),
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildVideosTab(context),
-            _buildNewsTab(context),
-          ],
-        ),
-        bottomNavigationBar: buildBottomNavigationBar,
-        drawer: Drawer(
-            child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xff37B6AE),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('PUSURA', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                  Text('Piri Reis University', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                  Text('SUSTAINABILITY RESEARCH AND APPLICATION CENTER',
-                      style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                ],
-              ),
+          appBar: AppBar(
+            title: Text(
+              'Medya',
+              style: CustomTextStyles2.appBarTextStyle(context),
             ),
-            ListTile(
-              title: const Text('Görünüm'),
-              selected: _selectedIndexDrawer == 0,
-              onTap: () {
-                // Update the state of the app
-                _onItemTapped(0);
-                // Then close the drawer
-                Navigator.pop(context);
+            bottom: TabBar(
+              controller: _tabController,
+              dividerColor: Colors.transparent,
+              labelColor: Colors.black,
+              unselectedLabelColor: const Color(0xff454E59),
+              indicatorColor: Colors.black,
+              tabs: const <Widget>[
+                Tab(
+                  text: 'Haberler',
+                  icon: Icon(Icons.newspaper),
+                ),
+                Tab(
+                  text: 'Etkinlikler',
+                  icon: Icon(Icons.newspaper),
+                ),
+              ],
+            ),
+            centerTitle: true,
+            automaticallyImplyLeading: false,
+            leading: Builder(
+              builder: (context) {
+                return IconButton(
+                  icon: Icon(Icons.menu, color: CustomColors.pruBlue),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                );
               },
             ),
-            const ExpansionTile(
-              title: const Text('Limanlar, Deniz ve Açık Deniz'),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              // _onItemTapped(1);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
-            ),
-            const ExpansionTile(
-              title: const Text('Gemi İnşaa/Bakım Onarım/Geri Dönüşüm'),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
-            ),
-            const ExpansionTile(
-              title: Text("Deniz İşletmeciliği/Gemi Donatımı/Yeşil Finans"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
-            ),
-            const ExpansionTile(
-              title: Text("Teknolojiler/Yakıtlar/Dekarbonizasyon"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
-            ),
-            const ExpansionTile(
-              title: Text("Balıkçılık/Su Ürünleri"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
-            ),
-            const ExpansionTile(
-              title: Text("Eğitim"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
-            )
-          ],
-        )),
-      ),
-    );
-  }
-
-  CustomBottomNavigationBar get buildBottomNavigationBar {
-    return CustomBottomNavigationBar(
-      onTabChange: (int index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-        switch (index) {
-          case 0:
-            Navigator.pushNamed(context, '/home');
-            break;
-          case 1:
-            Navigator.pushNamed(context, '/media', arguments: -1);
-            break;
-          case 2:
-            Navigator.pushNamed(context, '/announcement');
-            break;
-          case 3:
-            Navigator.pushNamed(context, '/profile');
-            break;
-        }
-      },
-      selectedIndex: _selectedIndex,
+          ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildNewsTab(context, state),
+              _buildVideosTab(context),
+            ],
+          ),
+          backgroundColor: CustomColors.bgGray,
+          bottomNavigationBar: CustomNavigationBar(
+              selectedIndex: _selectedIndex,
+              onTabChange: (int index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              }),
+          drawer: Drawer(
+              child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Color(0xff1E376E),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('PRUSAM', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                    Text('PÎRÎ REİS ÜNİVERSİTESİ', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                    Text('SÜRDÜRÜLEBİLİRLİK ARAŞTIRMA VE UYGULAMA MERKEZİ',
+                        style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                  ],
+                ),
+              ),
+              ListTile(
+                title: const Text('Hakkımızda'),
+                selected: _selectedIndexDrawer == 0,
+                onTap: () {
+                  // Update the state of the app
+                  _onItemTapped(0);
+                  // Then close the drawer
+                  Navigator.pushNamed(context, '/aboutUs');
+                },
+              ),
+              ExpansionTile(
+                title: const Text('Araştırma'),
+                children: <Widget>[
+                  ListTile(
+                    title: const Text("Avrupa Birliği Projeleri"),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/projectsRoute');
+                    },
+                  ),
+                  ListTile(
+                    title: const Text("Tübitak Projeleri"),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/home');
+                    },
+                  ),
+                  ListTile(
+                    title: const Text("BAP Projeleri"),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/home');
+                    },
+                  ),
+                  ListTile(
+                    title: const Text("Sanayi-Üniversite İşbirliği Projeleri"),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/home');
+                    },
+                  ),
+                  ListTile(
+                    title: const Text("Diğer Projeler"),
+                    onTap: () {
+                      Navigator.pushNamed(context, '/home');
+                    },
+                  ),
+                ],
+              ),
+              ListTile(
+                title: const Text('Etkinlikler'),
+                onTap: () {
+                  _onItemTapped(2);
+                  Navigator.pop(context);
+                  // Navigator.pushNamed(context, '/sampleReport');
+                  Navigator.pushNamed(context, '/home');
+                },
+                selected: _selectedIndexDrawer == 2,
+              ),
+              ListTile(
+                title: const Text('Haberler'),
+                onTap: () {
+                  _onItemTapped(2);
+                  Navigator.pop(context);
+                  // Navigator.pushNamed(context, '/sampleReport');
+                  Navigator.pushNamed(context, '/newsRoute');
+                },
+                selected: _selectedIndexDrawer == 3,
+              ),
+              ListTile(
+                title: const Text('Bültenler'),
+                onTap: () {
+                  _onItemTapped(2);
+                  Navigator.pop(context);
+                  // Navigator.pushNamed(context, '/sampleReport');
+                  Navigator.pushNamed(context, '/bulletinRoute');
+                },
+                selected: _selectedIndexDrawer == 4,
+              ),
+              ListTile(
+                title: const Text('Kütüphane'),
+                onTap: () {
+                  _onItemTapped(2);
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/home');
+                },
+                selected: _selectedIndexDrawer == 5,
+              ),
+              ListTile(
+                title: const Text('İletişim'),
+                onTap: () {
+                  _onItemTapped(2);
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/contact');
+                },
+                selected: _selectedIndexDrawer == 6,
+              ),
+            ],
+          ))),
     );
   }
 
   Widget _buildVideosTab(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ListView.builder(
-        itemCount: videoItems.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: ListTile(
-              leading: Image.asset(
-                videoItems[index].imagePath,
-                width: 100,
-                height: 100,
-                fit: BoxFit.fill,
-              ),
-              title: Text(videoItems[index].title),
-              subtitle: Text(videoItems[index].description),
-              onTap: () {
-                // Handle onTap action
-              },
+      padding: const EdgeInsets.all(16.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.green.withOpacity(0.2), // Hafif uyarı rengi
+          borderRadius: BorderRadius.circular(12), // Radius ile yuvarlatma
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const Icon(
+              Icons.notifications, // Bildirim ikonu
+              color: Colors.green, // İkon rengi
+              size: 40, // İkon boyutu
             ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildNewsTab(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ListView.builder(
-        itemCount: newsItems.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: ListTile(
-              leading: Image.asset(
-                newsItems[index].imagePath,
-                width: 120,
-                height: 180,
-                fit: BoxFit.cover,
-              ),
-              title: Text(newsItems[index].title),
-              subtitle: Text(newsItems[index].description),
-              onTap: () {
-                // Handle onTap action
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildInitial(BuildContext context) {
-    return Padding(padding: kAllPadding, child: Container());
-  }
-
-  Widget _buildSuccess(BuildContext context) {
-    return Padding(
-      padding: kAllPadding,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          MyContainer(
-              child: Padding(
-                padding: const EdgeInsets.all(18.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.black, size: 50.0),
-                    Box(size: BoxSize.SMALL, type: BoxType.VERTICAL),
-                    Text('Scanned Successfully', style: CustomTextStyles2.titleMediumTextStyle(context, Colors.black)),
-                    Box(size: BoxSize.SMALL, type: BoxType.VERTICAL),
-                    Text('"Rik Samuel Vienna" was scanned successfully.',
-                        textAlign: TextAlign.center,
-                        style: CustomTextStyles2.titleExtraSmallTextStyle(context, CustomColors.darkGray)),
-                  ],
+            const SizedBox(width: 12), // İkon ile metin arasında boşluk
+            Expanded(
+              child: Text(
+                'Güncel etkinlikleri eklendiği zaman burada takip edebilirsiniz.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.green[800], // Yazı rengi
+                  fontWeight: FontWeight.w600, // Yazı kalınlığı
                 ),
               ),
-              backgroundColor: CustomColors.bgGray),
-          Box(size: BoxSize.LARGE, type: BoxType.VERTICAL),
-          MyButtonWidget(
-            content: Padding(
-              padding: const EdgeInsets.all(18.0),
-              child: Text('Scan', style: CustomTextStyles2.titleMediumTextStyle(context, CustomColors.darkGray)),
             ),
-            onPressed: () {
-              // widget.viewModel.scanQR();
-            },
-            context: context,
-            buttonColor: CustomColors.bgGray,
-          ),
-          Box(size: BoxSize.MEDIUM, type: BoxType.VERTICAL),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Scan a new card',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 20.0,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.underline)),
-              Icon(Icons.arrow_forward, color: Colors.black, size: 30.0)
-            ],
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildLoading() {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildNewsTab(BuildContext context, MediaSuccess state) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: state.newsResource.data?.length ?? 0,
+        itemBuilder: (context, index) {
+          News newsItem = state.newsResource.data![index];
+          return NewsCard(
+            news: newsItem,
+            onTap: () {
+              context.read<MediaCubit>().showNewsDetail(newsItem);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  // Widget _buildSuccess(BuildContext context) {
+  //   return Padding(
+  //     padding: kAllPadding,
+  //     child: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       crossAxisAlignment: CrossAxisAlignment.center,
+  //       children: [
+  //         MyContainer(
+  //             backgroundColor: CustomColors.bgGray,
+  //             child: Padding(
+  //               padding: const EdgeInsets.all(18.0),
+  //               child: Column(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 crossAxisAlignment: CrossAxisAlignment.center,
+  //                 children: [
+  //                   const Icon(Icons.check_circle, color: Colors.black, size: 50.0),
+  //                   const Box(size: BoxSize.SMALL, type: BoxType.VERTICAL),
+  //                   Text('Scanned Successfully', style: CustomTextStyles2.titleMediumTextStyle(context, Colors.black)),
+  //                   const Box(size: BoxSize.SMALL, type: BoxType.VERTICAL),
+  //                   Text('"Rik Samuel Vienna" was scanned successfully.',
+  //                       textAlign: TextAlign.center,
+  //                       style: CustomTextStyles2.titleExtraSmallTextStyle(context, CustomColors.darkGray)),
+  //                 ],
+  //               ),
+  //             )),
+  //         const Box(size: BoxSize.LARGE, type: BoxType.VERTICAL),
+  //         MyButtonWidget(
+  //           content: Padding(
+  //             padding: const EdgeInsets.all(18.0),
+  //             child: Text('Scan', style: CustomTextStyles2.titleMediumTextStyle(context, CustomColors.darkGray)),
+  //           ),
+  //           onPressed: () {
+  //             // widget.viewModel.scanQR();
+  //           },
+  //           context: context,
+  //           buttonColor: CustomColors.bgGray,
+  //         ),
+  //         const Box(size: BoxSize.MEDIUM, type: BoxType.VERTICAL),
+  //         const Row(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           children: [
+  //             Text('Scan a new card',
+  //                 style: TextStyle(
+  //                     color: Colors.black,
+  //                     fontSize: 20.0,
+  //                     fontFamily: 'Inter',
+  //                     fontWeight: FontWeight.w600,
+  //                     decoration: TextDecoration.underline)),
+  //             Icon(Icons.arrow_forward, color: Colors.black, size: 30.0)
+  //           ],
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget _buildLoading(BuildContext context) {
+    return Stack(
       children: [
-        LinearProgressIndicator(
-          color: Colors.yellow,
-          backgroundColor: Colors.white,
+        Container(
+          color: const Color(0xff315891),
+          width: double.infinity,
+          height: double.infinity,
+        ),
+        Align(
+          // Ortalamak için eklenen Align widget
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center, // Varsayılan olarak ortalar
+            children: [
+              const LottieWidget(path: 'compass_loading'),
+              const SizedBox(height: 20),
+              Text(
+                'Yükleniyor..',
+                style: CustomTextStyles2.titleMediumTextStyle(context, Colors.white),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -460,11 +411,4 @@ class _MediaViewState extends State<MediaView> with TickerProviderStateMixin {
       ],
     );
   }
-}
-
-enum Pages {
-  HOME,
-  MEDIA,
-  ANNOUNCEMENT,
-  SETTINGS,
 }

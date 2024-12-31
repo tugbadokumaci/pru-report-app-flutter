@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qr_code_app/bloc/home_page/home_view.dart';
 
 import '../constants/constants.dart';
 import '../utils/custom_colors.dart';
@@ -13,7 +12,7 @@ class FABs {
       onPressed: () {
         Navigator.pushNamed(context, '/home');
       },
-      child: Icon(Icons.search, color: Colors.white),
+      child: const Icon(Icons.search, color: Colors.white),
     );
   }
 }

@@ -27,13 +27,19 @@ const String mediaRoute = '/media';
 const String announcementRoute = '/announcement';
 const String profileRoute = '/profile';
 const String validationRoute = '/validation';
-const String sampleReport = '/sampleReport';
+// const String sampleReport = '/sampleReport';
 const String reportsRoute = '/reports';
 const String contactRoute = '/contact';
+const String aboutUsRoute = '/aboutUs';
+// const String detailRoute = '/detail';
+const String pdfRoute = '/pdfRoute';
+const String newsRoute = '/newsRoute';
+const String bulletinRoute = '/bulletinRoute';
+const String projectsRoute = '/projectsRoute';
 
 class ApiConstants {
   ApiConstants._();
-  static const String BASE_URL = "https://www.codeocean.net";
+  static const String BASE_URL = "https://www.pr.webyazilim.web.tr";
 }
 
 const String phoneNumber = '+902244083848';

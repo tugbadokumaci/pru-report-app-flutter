@@ -1,0 +1,5 @@
+<resources>
+    <string name="msg_token_fmt">FCM Token: %1$s</string>
+    <string name="app_name">PRUSAM</string>
+
+</resources>

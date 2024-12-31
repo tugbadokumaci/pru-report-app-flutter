@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
 import 'package:qr_code_app/extension/context_extension.dart';
 
 import '../../utils/box_constrains.dart';
@@ -44,7 +43,7 @@ class WelcomeView extends StatelessWidget {
   Scaffold _buildLoading(BuildContext context) {
     return Scaffold(
       backgroundColor: CustomColors.bgLila,
-      body: Center(
+      body: const Center(
         child: LottieWidget(path: 'loading_animation'),
       ),
     );

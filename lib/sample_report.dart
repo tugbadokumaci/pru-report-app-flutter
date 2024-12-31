@@ -5,7 +5,6 @@ import 'package:qr_code_app/widget/box.dart';
 
 import 'utils/custom_colors.dart';
 import 'utils/custom_text_styles.dart';
-import 'widget/fabs.dart';
 
 class SampleReport extends StatelessWidget {
   const SampleReport({super.key});
@@ -33,7 +32,7 @@ class SampleReport extends StatelessWidget {
           },
         ),
       ),
-      backgroundColor: Color(0xffE7F4FD),
+      backgroundColor: const Color(0xffE7F4FD),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SingleChildScrollView(
           child: Padding(
@@ -60,7 +59,7 @@ class SampleReport extends StatelessWidget {
   }
 
   Widget _reportBody() {
-    return Column(
+    return const Column(
       children: [
         Text(
           'Denizlerimizin güncel sorunlarına önem verdiğimiz projemizde Karadeniz Bölgesi Denizcilik Sektöründe %30 iyileşme sağlandık.',
@@ -87,16 +86,16 @@ class SampleReport extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('MINE-EMI: Denizcilik Sektöründe Sürdürülebilirlik',
+        const Text('MINE-EMI: Denizcilik Sektöründe Sürdürülebilirlik',
             style: TextStyle(
               fontSize: 30,
               fontWeight: FontWeight.bold,
             )),
-        Box(size: BoxSize.EXTRASMALL, type: BoxType.VERTICAL),
-        Text('Raporlar >Çevre Raporları > MINE-EMI: Denizcilik Sektöründe Sürdürülebilirlik',
+        const Box(size: BoxSize.EXTRASMALL, type: BoxType.VERTICAL),
+        const Text('Raporlar >Çevre Raporları > MINE-EMI: Denizcilik Sektöründe Sürdürülebilirlik',
             style: TextStyle(fontSize: 20, color: Color(0xff8D8D8D), fontWeight: FontWeight.bold)),
-        Box(size: BoxSize.EXTRASMALL, type: BoxType.VERTICAL),
-        Text(
+        const Box(size: BoxSize.EXTRASMALL, type: BoxType.VERTICAL),
+        const Text(
           '7.05.2024 12:34',
           style: TextStyle(fontSize: 20, color: Color(0xff6F7F91), fontWeight: FontWeight.bold),
         ),

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
 
-import '../../bottom_nav_bar.dart';
 import '../../constants/constants.dart';
 
-import '../../models/card_model.dart';
+import '../../enum/pages_enum.dart';
+import '../../models/news_model.dart';
 import '../../size_config.dart';
 import '../../utils/box_constrains.dart';
+import '../../utils/custom_bottom_nav_bar.dart';
 import '../../utils/custom_colors.dart';
 import '../../utils/custom_text_styles.dart';
+import '../../utils/news_card.dart';
 import '../../widget/box.dart';
-import '../../widget/fabs.dart';
 import '../../widget/lottie_widget.dart';
+import '../news_page/news_view.dart';
 import 'home_cubit.dart';
 import 'home_state.dart';
 
@@ -29,6 +30,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
+    widget.viewModel.getAllNews();
   }
 
   int _selectedIndex = Pages.HOME.index; // creating index field for our state
@@ -40,22 +42,7 @@ class _HomeViewState extends State<HomeView> {
   //   Text(LocaleKeys.profile_appBarTitle.locale, style: optionStyle),
   // ];
 
-  int _selectedIndexDrawer = 0;
-  static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Görünüm',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Limanlar, Deniz ve Açık Deniz',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: Gemi İnşaa/Bakım Onarım/Geri Dönüşüm',
-      style: optionStyle,
-    ),
-  ];
+  final int _selectedIndexDrawer = -1;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -73,15 +60,26 @@ class _HomeViewState extends State<HomeView> {
     SizeConfig().init(context);
     return SafeArea(
         child: BlocConsumer<HomeCubit, HomeState>(
-      listener: ((context, state) {}),
+      listener: (context, state) {
+        if (state is HomeNewsDetail) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NewsDetailView(news: state.news),
+            ),
+          ).then((_) {
+            // Haber detayından geri dönüldüğünde haber listesini yenile
+            context.read<HomeCubit>().getAllNews();
+          });
+        }
+      },
       builder: (context, state) {
         debugPrint('Home View State is : $state');
         if (state is HomeInitial) {
-          // widget.viewModel.getData();
-          widget.viewModel.getCards();
+          // widget.viewModel.getAllNews();
           return Container();
         } else if (state is HomeLoading) {
-          return _buildLoading();
+          return _buildLoading(context);
         } else if (state is HomeSuccess) {
           return _buildSuccess(context, state);
         } else if (state is HomeError) {
@@ -92,32 +90,11 @@ class _HomeViewState extends State<HomeView> {
     ));
   }
 
-  CustomBottomNavigationBar get buildBottomNavigationBar {
-    return CustomBottomNavigationBar(
-      onTabChange: (int index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-        switch (index) {
-          case 0:
-            Navigator.pushNamed(context, '/home');
-          case 1:
-            Navigator.pushNamed(context, '/media', arguments: -1);
-          case 2:
-            Navigator.pushNamed(context, '/announcement');
-          case 3:
-            Navigator.pushNamed(context, '/profile');
-        }
-      },
-      selectedIndex: _selectedIndex,
-    );
-  }
-
   Widget _buildSuccess(BuildContext context, HomeSuccess state) {
     return Scaffold(
       appBar: AppBar(
         // title: Text(LocaleKeys.home_appBarTitle.locale, style: CustomTextStyles2.appBarTextStyle(context)),
-        title: Text('Home', style: CustomTextStyles2.appBarTextStyle(context)),
+        title: Text('Ana Sayfa', style: CustomTextStyles2.appBarTextStyle(context)),
         centerTitle: true,
         automaticallyImplyLeading: false,
         leading: Builder(
@@ -132,10 +109,6 @@ class _HomeViewState extends State<HomeView> {
         ),
       ),
       backgroundColor: CustomColors.bgGray,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: FABs.buildCreateFab(context),
-      // drawer: const Navbar(),
-      // bottomNavigationBar: CustomBottomNavBar(),
       body: SingleChildScrollView(
         child: Padding(
           padding: kAllPadding,
@@ -144,28 +117,30 @@ class _HomeViewState extends State<HomeView> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: _profileHeader(state.cardResource.data!.length),
+                child: _profileHeader(),
               ),
-              Padding(
-                padding: kVerticalPadding,
-                child: _horizontalCards(state.cardResource.data!),
-              ),
+              // Padding(
+              //   padding: kVerticalPadding,
+              //   child: _horizontalCards(state.pageResource.data!),
+              // ),
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: _profileHeader2(context),
               ),
               Padding(
-                padding: kVerticalPadding,
-                child: _horizontalCards2(state.cardResource.data!),
-              ),
-              Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: _profileHeader3(context),
+                child: _profileHeader3(context), //haberler
               ),
+
               Padding(
                 padding: kVerticalPadding,
-                child: _container(),
+                child: _horizontalCards2(state.newsResource.data!), //haberler slider
               ),
+
+              // Padding(
+              //   padding: kVerticalPadding,
+              //   child: _pages(state),
+              // ),
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: _profileHeader4(context),
@@ -174,335 +149,383 @@ class _HomeViewState extends State<HomeView> {
                 padding: kVerticalPadding,
                 child: _container2(),
               ),
+              // Padding(
+              //   padding: kVerticalPadding,
+              //   child: _container(),
+              // ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: buildBottomNavigationBar,
+      bottomNavigationBar: CustomNavigationBar(
+          selectedIndex: _selectedIndex,
+          onTabChange: (int index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          }),
       drawer: Drawer(
           child: ListView(
         // Important: Remove any padding from the ListView.
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Color(0xff1E376E),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('PUSURA', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                Text('Piri Reis University', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                Text('SUSTAINABILITY RESEARCH AND APPLICATION CENTER',
+                Text('PRUSAM', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                Text('PÎRÎ REİS ÜNİVERSİTESİ', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                Text('SÜRDÜRÜLEBİLİRLİK ARAŞTIRMA VE UYGULAMA MERKEZİ',
                     style: CustomTextStyles2.drawerTitleTextStyle(context)),
               ],
             ),
           ),
           ListTile(
-            title: const Text('Görünüm'),
+            title: const Text('Hakkımızda'),
             selected: _selectedIndexDrawer == 0,
             onTap: () {
               // Update the state of the app
               _onItemTapped(0);
               // Then close the drawer
-              Navigator.pop(context);
+              Navigator.pushNamed(context, '/aboutUs');
             },
           ),
           ExpansionTile(
-            title: Text('Limanlar, Deniz ve Açık Deniz'),
+            title: const Text('Araştırma'),
             children: <Widget>[
               ListTile(
-                title: Text("Görünüm"),
+                contentPadding: const EdgeInsets.only(left: 32.0), // Girinti eklendi
+                title: const Text("Avrupa Birliği Projeleri"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
+                  Navigator.pushNamed(context, '/projectsRoute');
                 },
               ),
               ListTile(
-                title: Text("Gelişim İndexleri"),
+                contentPadding: const EdgeInsets.only(left: 32.0),
+                title: const Text("Tübitak Projeleri"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
+                  Navigator.pushNamed(context, '/projhomeects');
                 },
               ),
               ListTile(
-                title: Text("Politikalar"),
+                contentPadding: const EdgeInsets.only(left: 32.0),
+                title: const Text("BAP Projeleri"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
+                  Navigator.pushNamed(context, '/home');
                 },
               ),
               ListTile(
-                title: Text("Öncelikler"),
+                contentPadding: const EdgeInsets.only(left: 32.0),
+                title: const Text("Sanayi-Üniversite İşbirliği Projeleri"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
+                  Navigator.pushNamed(context, '/home');
                 },
               ),
               ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
+                contentPadding: const EdgeInsets.only(left: 32.0),
+                title: const Text("Diğer Projeler"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
-                },
-              ),
-            ],
-          ),
-          ExpansionTile(
-            title: Text('Deniz İşletmeciliği/Gemi Donatımı/Yeşil Finans'),
-            children: <Widget>[
-              ListTile(
-                title: Text("Görünüm"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
-                },
-              ),
-              ListTile(
-                title: Text("Gelişim İndexleri"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
-                },
-              ),
-              ListTile(
-                title: Text("Politikalar"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
-                },
-              ),
-              ListTile(
-                title: Text("Öncelikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
-                },
-              ),
-              ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
-                },
-              ),
-            ],
-          ),
-          ExpansionTile(
-            title: Text('Teknolojiler/Yakıtlar/Dekarbonizasyon'),
-            children: <Widget>[
-              ListTile(
-                title: Text("Görünüm"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
-                },
-              ),
-              ListTile(
-                title: Text("Gelişim İndexleri"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
-                },
-              ),
-              ListTile(
-                title: Text("Politikalar"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
-                },
-              ),
-              ListTile(
-                title: Text("Öncelikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
-                },
-              ),
-              ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
-                },
-              ),
-            ],
-          ),
-          ExpansionTile(
-            title: Text('Balıkçılık/Su Ürünleri'),
-            children: <Widget>[
-              ListTile(
-                title: Text("Görünüm"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
-                },
-              ),
-              ListTile(
-                title: Text("Gelişim İndexleri"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
-                },
-              ),
-              ListTile(
-                title: Text("Politikalar"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
-                },
-              ),
-              ListTile(
-                title: Text("Öncelikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
-                },
-              ),
-              ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
-                },
-              ),
-            ],
-          ),
-          ExpansionTile(
-            title: Text('Eğitim'),
-            children: <Widget>[
-              ListTile(
-                title: Text("Görünüm"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
-                },
-              ),
-              ListTile(
-                title: Text("Gelişim İndexleri"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
-                },
-              ),
-              ListTile(
-                title: Text("Politikalar"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
-                },
-              ),
-              ListTile(
-                title: Text("Öncelikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
-                },
-              ),
-              ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
+                  Navigator.pushNamed(context, '/home');
                 },
               ),
             ],
           ),
           ListTile(
-            title: Text('Rapor Örneği'),
+            title: const Text('Etkinlikler'),
             onTap: () {
               _onItemTapped(2);
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/sampleReport');
+              // Navigator.pushNamed(context, '/sampleReport');
+              Navigator.pushNamed(context, '/home');
             },
             selected: _selectedIndexDrawer == 2,
           ),
           ListTile(
-            title: Text('Tüm Raporlar'),
+            title: const Text('Haberler'),
             onTap: () {
               _onItemTapped(2);
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/reports');
+              // Navigator.pushNamed(context, '/sampleReport');
+              Navigator.pushNamed(context, '/newsRoute');
             },
-            selected: _selectedIndexDrawer == 2,
+            selected: _selectedIndexDrawer == 3,
           ),
           ListTile(
-            title: Text('İletişim'),
+            title: const Text('Bültenler'),
+            onTap: () {
+              _onItemTapped(2);
+              Navigator.pop(context);
+              // Navigator.pushNamed(context, '/sampleReport');
+              Navigator.pushNamed(context, '/bulletinRoute');
+            },
+            selected: _selectedIndexDrawer == 4,
+          ),
+          ListTile(
+            title: const Text('Kütüphane'),
+            onTap: () {
+              _onItemTapped(2);
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/home');
+            },
+            selected: _selectedIndexDrawer == 5,
+          ),
+          ListTile(
+            title: const Text('İletişim'),
             onTap: () {
               _onItemTapped(2);
               Navigator.pop(context);
               Navigator.pushNamed(context, '/contact');
             },
-            selected: _selectedIndexDrawer == 2,
+            selected: _selectedIndexDrawer == 6,
           ),
         ],
       )),
     );
   }
 
-  Column _profileHeader(int length) {
+  Column _profileHeader() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text('Yeni Nesil Görselleştirme',
-                // LocaleKeys.home_servicesTitle.locale,
-                style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black)),
-            const Spacer(),
-            const Icon(Icons.add_circle, color: Colors.black, size: 40),
-          ],
+        Text('Araştırma Merkezi',
+            // LocaleKeys.home_servicesTitle.locale,
+            style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black)),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child:
+              Image.network('https://prusam.pirireis.edu.tr/wp-content/uploads/2024/09/Piri-Reis-Universitesi-12.jpg'),
         ),
-        const Text('Yeni nesil görselleştirme teknikleri ile  raporlarımızı şimdi daha kolay inceleyin.')
+        const Text(
+            'PRUSAM (Piri Reis Üniversitesi Sürdürülebilirlik Araştırma ve Uygulama Merkezi), sürdürülebilirlik ve Net Sıfır hedefleri doğrultusunda çalışmalar yürüten bir araştırma merkezi olarak, denizcilik sektörü başta olmak üzere enerji yönetimi, karbonsuzlaştırma ve dijitalleşme alanlarında yenilikçi çözümler geliştirmeyi amaçlamaktadır. Merkez, sürdürülebilir liman operasyonlarından sektörel dijital dönüşüme kadar geniş bir yelpazede araştırmalar yaparak, çevresel etkilerin azaltılması ve sürdürülebilir kalkınma hedeflerine ulaşılması için stratejiler üretmektedir. PRUSAM, bu alanlardaki akademik bilgi birikimi ve sektörel iş birlikleriyle geleceğin denizcilik ve enerji yönetiminde önemli bir rol oynamayı hedeflemektedir.')
       ],
     );
   }
 
-  Widget _horizontalCards(List<CardModel> cards) {
-    if (cards.isEmpty) {
-      return Column(
-        children: [
-          Icon(Icons.error_outline, color: CustomColors.bwyYellow),
-          const Box(size: BoxSize.EXTRASMALL, type: BoxType.VERTICAL),
-          Text(
-            'Bulunamadı',
-            textAlign: TextAlign.center,
-            style: CustomTextStyles2.titleSmallTextStyle(context, Colors.grey),
-          )
-        ],
-      );
-    }
-    return Container(
-        height: 200,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: 4,
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                width: 370,
-                child: Image.asset('assets/images/slider${index}.png', height: 200, fit: BoxFit.fitWidth),
-              ),
-            );
-          },
-        ));
-  }
+  // Widget _horizontalCards(List<PageModel> cards) {
+  //   if (cards.isEmpty) {
+  //     return Column(
+  //       children: [
+  //         Icon(Icons.error_outline, color: CustomColors.bwyYellow),
+  //         const Box(size: BoxSize.EXTRASMALL, type: BoxType.VERTICAL),
+  //         Text(
+  //           'Bulunamadı',
+  //           textAlign: TextAlign.center,
+  //           style: CustomTextStyles2.titleSmallTextStyle(context, Colors.grey),
+  //         )
+  //       ],
+  //     );
+  //   }
+  //   return SizedBox(
+  //       height: 200,
+  //       child: ListView.builder(
+  //         scrollDirection: Axis.horizontal,
+  //         itemCount: 4,
+  //         shrinkWrap: true,
+  //         itemBuilder: (context, index) {
+  //           return Padding(
+  //             padding: const EdgeInsets.all(8.0),
+  //             child: SizedBox(
+  //               width: 370,
+  //               child: Image.asset('assets/images/slider$index.png', height: 200, fit: BoxFit.fitWidth),
+  //             ),
+  //           );
+  //         },
+  //       ));
+  // }
 
-  Widget _horizontalCards2(List<CardModel> cards) {
-    if (cards.isEmpty) {
-      return Column(
-        children: [
-          Icon(Icons.error_outline, color: CustomColors.bwyYellow),
-          const Box(size: BoxSize.EXTRASMALL, type: BoxType.VERTICAL),
-          Text(
-            'Bulunamadı',
-            textAlign: TextAlign.center,
-            style: CustomTextStyles2.titleSmallTextStyle(context, Colors.grey),
-          )
-        ],
-      );
-    }
-    return Container(
-        height: 200,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: 4,
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                width: 370,
-                child: Image.asset('assets/images/hakkimizda${index}.png', height: 200, fit: BoxFit.fitWidth),
-              ),
-            );
-          },
-        ));
-  }
+  // Widget _pages(HomeSuccess state) {
+  //   return SizedBox(
+  //     height: 400,
+  //     width: 400,
+  //     child: ListView.builder(
+  //       itemCount: state.pageResource.data!.length,
+  //       itemBuilder: (context, index) {
+  //         PageModel page = state.pageResource.data![index];
+  //         return ListTile(
+  //           title: Text(page.pageId.toString()),
+  //           subtitle: Text(page.post_title),
+  //           onTap: () {
+  //             //widget.viewModel.goToDetail(page);
+  //           },
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
 
-  Widget _buildLoading() {
-    return const Column(
+  Widget _profileHeader3(BuildContext context) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        LinearProgressIndicator(
-          color: Colors.yellow,
-          backgroundColor: Colors.white,
+        Text('Haberler',
+            // LocaleKeys.home_myServicesTitle.locale,
+            style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black)),
+        const Text(
+            'Modern görselleştirilme teknikleri ile hazırladığımız analizlerimizi okuyucuya daha etkili sunuyoruz. ')
+      ],
+    );
+  }
+
+  Widget _horizontalCards2(List<News> news) {
+    if (news.isEmpty) {
+      return Column(
+        children: [
+          Icon(Icons.error_outline, color: CustomColors.bwyYellow),
+          const Box(size: BoxSize.EXTRASMALL, type: BoxType.VERTICAL),
+          Text(
+            'Bulunamadı',
+            textAlign: TextAlign.center,
+            style: CustomTextStyles2.titleSmallTextStyle(context, Colors.grey),
+          )
+        ],
+      );
+    }
+
+    return SizedBox(
+      height: 266,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: news.length,
+        itemBuilder: (context, index) {
+          News newsItem = news[index];
+          return NewsCard(
+            news: newsItem,
+            onTap: () {
+              context.read<HomeCubit>().showNewsDetail(newsItem); // Buraya istediğiniz fonksiyonu verebilirsiniz
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _profileHeader2(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Araştırma Alanları',
+            // LocaleKeys.home_myServicesTitle.locale,
+            style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black)),
+        const ExpansionTile(
+          title: Text('SEKTÖREL DİJİTALLEŞME'),
+          children: <Widget>[
+            ListTile(
+                title: Text(
+                    'Denizcilikte sektörel dijitalleşme, Endüstri 4.0 ile hız kazanan otomasyon, veri analitiği ve yapay zeka gibi teknolojilerin entegrasyonu ile gerçekleşmektedir. Dijital tersaneler, gemi inşa süreçlerinde verimliliği artırırken, akıllı gemiler ve otonom sistemler denizcilik operasyonlarını optimize ederek daha sürdürülebilir ve rekabetçi bir sektör yaratmayı hedefler.'))
+          ],
+        ),
+        const ExpansionTile(
+          title: Text('ENERJİ YÖNETİMİ VE ENERJİ VERİMLİLİĞİ'),
+          children: <Widget>[
+            ListTile(
+                title: Text(
+                    'Denizcilikte sektörel dijitalleşme, Endüstri 4.0 ile hız kazanan otomasyon, veri analitiği ve yapay zeka gibi teknolojilerin entegrasyonu ile gerçekleşmektedir. Dijital tersaneler, gemi inşa süreçlerinde verimliliği artırırken, akıllı gemiler ve otonom sistemler denizcilik operasyonlarını optimize ederek daha sürdürülebilir ve rekabetçi bir sektör yaratmayı hedefler.'))
+          ],
+        ),
+        const ExpansionTile(
+          title: Text('NET SIFIR ÇERÇEVESİ'),
+          children: <Widget>[
+            ListTile(
+                title: Text(
+                    'Denizcilikte sektörel dijitalleşme, Endüstri 4.0 ile hız kazanan otomasyon, veri analitiği ve yapay zeka gibi teknolojilerin entegrasyonu ile gerçekleşmektedir. Dijital tersaneler, gemi inşa süreçlerinde verimliliği artırırken, akıllı gemiler ve otonom sistemler denizcilik operasyonlarını optimize ederek daha sürdürülebilir ve rekabetçi bir sektör yaratmayı hedefler.'))
+          ],
+        ),
+        const ExpansionTile(
+          title: Text('LİMANLARIN SÜRDÜRÜLEBİLİRLİĞİ'),
+          children: <Widget>[
+            ListTile(
+                title: Text(
+                    'Denizcilikte sektörel dijitalleşme, Endüstri 4.0 ile hız kazanan otomasyon, veri analitiği ve yapay zeka gibi teknolojilerin entegrasyonu ile gerçekleşmektedir. Dijital tersaneler, gemi inşa süreçlerinde verimliliği artırırken, akıllı gemiler ve otonom sistemler denizcilik operasyonlarını optimize ederek daha sürdürülebilir ve rekabetçi bir sektör yaratmayı hedefler.'))
+          ],
+        ),
+        const ExpansionTile(
+          title: Text('KARBONSUZLAŞTIRMA'),
+          children: <Widget>[
+            ListTile(
+                title: Text(
+                    'Denizcilikte sektörel dijitalleşme, Endüstri 4.0 ile hız kazanan otomasyon, veri analitiği ve yapay zeka gibi teknolojilerin entegrasyonu ile gerçekleşmektedir. Dijital tersaneler, gemi inşa süreçlerinde verimliliği artırırken, akıllı gemiler ve otonom sistemler denizcilik operasyonlarını optimize ederek daha sürdürülebilir ve rekabetçi bir sektör yaratmayı hedefler.'))
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _container() {
+    return Image.asset('assets/images/graphics.png');
+  }
+
+  Widget _profileHeader4(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('İşbirliklerimiz',
+            // LocaleKeys.home_myServicesTitle.locale,
+            style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black)),
+        const Text(
+            'Kurduğumuz işbirlikleri, sürdürülebilirlik alanında yenilikçi çözümler üretme ve toplumsal farkındalık yaratma sürecimizi güçlendirmektedir.')
+      ],
+    );
+  }
+
+  Widget _container2() {
+    return const Column(
+      children: [
+        // Image.asset('assets/images/graphics2.png'),
+        ExpansionTile(
+          title: Text('Kurumlar'),
+          subtitle: Text('Kurumlar ile işbirliklerimizi inceleyin'),
+          controlAffinity: ListTileControlAffinity.leading,
+          children: <Widget>[
+            ListTile(title: Text('Kurum 1')),
+          ],
+        ),
+        ExpansionTile(
+          title: Text('Şirketler'),
+          subtitle: Text('Şİrketler ile işbirliklerimizi inceleyin'),
+          controlAffinity: ListTileControlAffinity.leading,
+          children: <Widget>[
+            ListTile(title: Text('Şirket 1')),
+          ],
+        ),
+        ExpansionTile(
+          title: Text('Üniversiteler'),
+          subtitle: Text('Üniversiteler ile işbirliklerimizi inceleyin'),
+          controlAffinity: ListTileControlAffinity.leading,
+          children: <Widget>[
+            ListTile(title: Text('Üniversite 1')),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoading(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          color: const Color(0xff315891),
+          width: double.infinity,
+          height: double.infinity,
+        ),
+        Align(
+          // Ortalamak için eklenen Align widget
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center, // Varsayılan olarak ortalar
+            children: [
+              const LottieWidget(path: 'compass_loading'),
+              const SizedBox(height: 20),
+              Text(
+                'Yükleniyor..',
+                style: CustomTextStyles2.titleMediumTextStyle(context, Colors.white),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -524,86 +547,4 @@ class _HomeViewState extends State<HomeView> {
       ],
     ));
   }
-
-  Widget _profileHeader2(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Bizi Tanıyın',
-            // LocaleKeys.home_myServicesTitle.locale,
-            style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black)),
-        const Text('Denizcilik Sektörünün göz bebeği Piri Reis Üniversitesini yakından tanıyın.')
-      ],
-    );
-  }
-
-  Widget _profileHeader3(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Verimlilik İçin Raporluyoruz',
-            // LocaleKeys.home_myServicesTitle.locale,
-            style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black)),
-        const Text(
-            'Modern görselleştirilme teknikleri ile hazırladığımız analizlerimizi okuyucuya daha etkili sunuyoruz. ')
-      ],
-    );
-  }
-
-  Widget _container() {
-    return Image.asset('assets/images/graphics.png');
-  }
-
-  Widget _profileHeader4(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Sayılarla PRU',
-            // LocaleKeys.home_myServicesTitle.locale,
-            style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black)),
-        const Text('Deniz Ticaret Odası destekleriyle popüler  analiz raporlarımızı keşfetmeye başlayın.')
-      ],
-    );
-  }
-
-  Widget _container2() {
-    return Column(
-      children: [
-        Image.asset('assets/images/graphics2.png'),
-        const ExpansionTile(
-          title: Text('Haftanın en çok okunan analiz raporları'),
-          subtitle: Text('Haftanın en çok görüntülenen analiz raporlarını inceleyin.'),
-          controlAffinity: ListTileControlAffinity.leading,
-          children: <Widget>[
-            ListTile(title: Text('Rapor-11-04-2024.pdf')),
-            ListTile(title: Text('Rapor-17-01-2024.pdf')),
-            ListTile(title: Text('Rapor-13.05.2024.pdf')),
-          ],
-        ),
-        const ExpansionTile(
-          title: Text('Enerji verimliliğinde biz - PRU'),
-          subtitle: Text('Leading expansion arrow icon'),
-          controlAffinity: ListTileControlAffinity.leading,
-          children: <Widget>[
-            ListTile(title: Text('This is tile number 3')),
-          ],
-        ),
-        const ExpansionTile(
-          title: Text('Daha temiz yarınlar için - PRU'),
-          subtitle: Text('Leading expansion arrow icon'),
-          controlAffinity: ListTileControlAffinity.leading,
-          children: <Widget>[
-            ListTile(title: Text('This is tile number 3')),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-enum Pages {
-  HOME,
-  MEDIA,
-  ANNOUNCEMENT,
-  SETTINGS,
 }

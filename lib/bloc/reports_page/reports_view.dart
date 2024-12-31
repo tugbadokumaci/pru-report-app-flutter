@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_code_app/bloc/home_page/home_state.dart';
 import 'package:qr_code_app/bloc/reports_page/reports_cubit.dart';
-import 'package:qr_code_app/models/report_model.dart';
 import 'package:qr_code_app/size_config.dart';
 
 import '../../bottom_nav_bar.dart';
+import '../../enum/pages_enum.dart';
+import '../../models/post_model.dart';
 import '../../utils/custom_colors.dart';
 import '../../utils/custom_text_styles.dart';
+import '../../utils/regex_img_func.dart';
 import '../../widget/lottie_widget.dart';
 import 'reports_state.dart';
 
 class ReportsView extends StatefulWidget {
   final ReportsCubit viewModel;
-  ReportsView({Key? key, required this.viewModel}) : super(key: key);
+  const ReportsView({Key? key, required this.viewModel}) : super(key: key);
 
   @override
   State<ReportsView> createState() => _ReportsViewState();
@@ -34,7 +36,7 @@ class _ReportsViewState extends State<ReportsView> {
   //   Text(LocaleKeys.profile_appBarTitle.locale, style: optionStyle),
   // ];
 
-  int _selectedIndexDrawer = 0;
+  final int _selectedIndexDrawer = 0;
   static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
   static const List<Widget> _widgetOptions = <Widget>[
     Text(
@@ -70,14 +72,14 @@ class _ReportsViewState extends State<ReportsView> {
       builder: (context, state) {
         debugPrint('Reports View State is: $state');
         if (state is ReportsInitial) {
-          widget.viewModel.getAllReports();
+          widget.viewModel.getAllPosts();
           return Container();
         } else if (state is ReportsLoading) {
           return _buildLoading();
         } else if (state is ReportsSuccess) {
           return _buildSuccess(context, state);
         } else if (state is ReportsDetail) {
-          return _buildDetail(context, state.report);
+          return _buildDetail(context, state.post);
         } else if (state is HomeError) {
           return _buildError(context);
         }
@@ -86,49 +88,99 @@ class _ReportsViewState extends State<ReportsView> {
     ));
   }
 
-  Widget _buildDetail(BuildContext context, ReportModel reportModel) {
+  Widget _buildDetail(BuildContext context, PostModel postModel) {
+    // Extract the thumbnail URL
+    String? thumbnailUrl = extractImageUrl(postModel.postThumbnail);
+
+    // List of image URLs, filtering out any null values
+    List<String> imageUrls = postModel.imageUrls.where((url) => url != null).cast<String>().toList();
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rapor Detay', style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black)),
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: Icon(
-                Icons.chevron_left,
-                color: CustomColors.pruBlue,
-                size: 40,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            );
+        title: Text(
+          'Rapor Detay',
+          style: CustomTextStyles2.titleLargeTextStyle(context, Colors.black),
+        ),
+        leading: IconButton(
+          icon: Icon(
+            Icons.chevron_left,
+            color: CustomColors.pruBlue,
+            size: 40,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
           },
         ),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Title: ${reportModel.reportTitle}',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Description: ${reportModel.reportDescription}',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Text: ${reportModel.reportText}',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Date: ${reportModel.reportDate}',
-              style: TextStyle(fontSize: 16),
-            ),
+            // Thumbnail image
+            if (thumbnailUrl.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Image.network(
+                  thumbnailUrl,
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            // Descriptions
+            if (postModel.aciklama_1_ust_baslik.isNotEmpty)
+              Text(
+                postModel.aciklama_1_ust_baslik,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            if (postModel.aciklama_1.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  postModel.aciklama_1,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            if (postModel.aciklama_2_ust_baslik.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Text(
+                  postModel.aciklama_2_ust_baslik,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+            if (postModel.aciklama_2.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  postModel.aciklama_2,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            // Additional images
+            if (imageUrls.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'İlgili Resimler:',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Column(
+                      children: imageUrls.map((url) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Image.network(url),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -162,230 +214,111 @@ class _ReportsViewState extends State<ReportsView> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Color(0xff1E376E),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('PUSURA', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                Text('Piri Reis University', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                Text('SUSTAINABILITY RESEARCH AND APPLICATION CENTER',
+                Text('PRUSAM', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                Text('PÎRÎ REİS ÜNİVERSİTESİ', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                Text('SÜRDÜRÜLEBİLİRLİK ARAŞTIRMA VE UYGULAMA MERKEZİ',
                     style: CustomTextStyles2.drawerTitleTextStyle(context)),
               ],
             ),
           ),
           ListTile(
-            title: const Text('Görünüm'),
+            title: const Text('Hakkımızda'),
             selected: _selectedIndexDrawer == 0,
             onTap: () {
               // Update the state of the app
               _onItemTapped(0);
               // Then close the drawer
-              Navigator.pop(context);
+              Navigator.pushNamed(context, '/aboutUs');
             },
           ),
           ExpansionTile(
-            title: Text('Limanlar, Deniz ve Açık Deniz'),
+            title: const Text('Araştırma'),
             children: <Widget>[
               ListTile(
-                title: Text("Görünüm"),
+                title: const Text("Avrupa Birliği Projeleri"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
+                  Navigator.pushNamed(context, '/projects');
                 },
               ),
               ListTile(
-                title: Text("Gelişim İndexleri"),
+                title: const Text("Tübitak Projeleri"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
+                  Navigator.pushNamed(context, '/projects');
                 },
               ),
               ListTile(
-                title: Text("Politikalar"),
+                title: const Text("BAP Projeleri"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
+                  Navigator.pushNamed(context, '/projects');
                 },
               ),
               ListTile(
-                title: Text("Öncelikler"),
+                title: const Text("Sanayi-Üniversite İşbirliği Projeleri"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
+                  Navigator.pushNamed(context, '/projects');
                 },
               ),
               ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
+                title: const Text("Diğer Projeler"),
                 onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
-                },
-              ),
-            ],
-          ),
-          ExpansionTile(
-            title: Text('Deniz İşletmeciliği/Gemi Donatımı/Yeşil Finans'),
-            children: <Widget>[
-              ListTile(
-                title: Text("Görünüm"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
-                },
-              ),
-              ListTile(
-                title: Text("Gelişim İndexleri"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
-                },
-              ),
-              ListTile(
-                title: Text("Politikalar"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
-                },
-              ),
-              ListTile(
-                title: Text("Öncelikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
-                },
-              ),
-              ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
-                },
-              ),
-            ],
-          ),
-          ExpansionTile(
-            title: Text('Teknolojiler/Yakıtlar/Dekarbonizasyon'),
-            children: <Widget>[
-              ListTile(
-                title: Text("Görünüm"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
-                },
-              ),
-              ListTile(
-                title: Text("Gelişim İndexleri"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
-                },
-              ),
-              ListTile(
-                title: Text("Politikalar"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
-                },
-              ),
-              ListTile(
-                title: Text("Öncelikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
-                },
-              ),
-              ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
-                },
-              ),
-            ],
-          ),
-          ExpansionTile(
-            title: Text('Balıkçılık/Su Ürünleri'),
-            children: <Widget>[
-              ListTile(
-                title: Text("Görünüm"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
-                },
-              ),
-              ListTile(
-                title: Text("Gelişim İndexleri"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
-                },
-              ),
-              ListTile(
-                title: Text("Politikalar"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
-                },
-              ),
-              ListTile(
-                title: Text("Öncelikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
-                },
-              ),
-              ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
-                },
-              ),
-            ],
-          ),
-          ExpansionTile(
-            title: Text('Eğitim'),
-            children: <Widget>[
-              ListTile(
-                title: Text("Görünüm"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu1');
-                },
-              ),
-              ListTile(
-                title: Text("Gelişim İndexleri"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu2');
-                },
-              ),
-              ListTile(
-                title: Text("Politikalar"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu3');
-                },
-              ),
-              ListTile(
-                title: Text("Öncelikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu4');
-                },
-              ),
-              ListTile(
-                title: Text("Yol Haritesı ve Hareketlilikler"),
-                onTap: () {
-                  Navigator.pushNamed(context, '/submenu5');
+                  Navigator.pushNamed(context, '/projects');
                 },
               ),
             ],
           ),
           ListTile(
-            title: Text('Rapor Örneği'),
+            title: const Text('Etkinlikler'),
             onTap: () {
               _onItemTapped(2);
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/sampleReport');
+              // Navigator.pushNamed(context, '/sampleReport');
+              Navigator.pushNamed(context, '/home');
             },
             selected: _selectedIndexDrawer == 2,
           ),
           ListTile(
-            title: Text('Tüm Raporlar'),
+            title: const Text('Haberler'),
             onTap: () {
               _onItemTapped(2);
               Navigator.pop(context);
-              Navigator.pushNamed(context, '/reports');
+              // Navigator.pushNamed(context, '/sampleReport');
+              Navigator.pushNamed(context, '/newsRoute');
             },
-            selected: _selectedIndexDrawer == 2,
+            selected: _selectedIndexDrawer == 3,
           ),
           ListTile(
-            title: Text('İletişim'),
+            title: const Text('Bültenler'),
+            onTap: () {
+              _onItemTapped(2);
+              Navigator.pop(context);
+              // Navigator.pushNamed(context, '/sampleReport');
+              Navigator.pushNamed(context, '/bulletinRoute');
+            },
+            selected: _selectedIndexDrawer == 4,
+          ),
+          ListTile(
+            title: const Text('Kütüphane'),
+            onTap: () {
+              _onItemTapped(2);
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/home');
+            },
+            selected: _selectedIndexDrawer == 5,
+          ),
+          ListTile(
+            title: const Text('İletişim'),
             onTap: () {
               _onItemTapped(2);
               Navigator.pop(context);
               Navigator.pushNamed(context, '/contact');
             },
-            selected: _selectedIndexDrawer == 2,
+            selected: _selectedIndexDrawer == 6,
           ),
         ],
       )),
@@ -396,12 +329,20 @@ class _ReportsViewState extends State<ReportsView> {
     return ListView.builder(
       itemCount: state.reportResource.data!.length,
       itemBuilder: (context, index) {
-        ReportModel report = state.reportResource.data![index];
+        PostModel page = state.reportResource.data![index];
         return ListTile(
-          title: Text(report.reportTitle),
-          subtitle: Text(report.reportDescription),
+          leading: page.postThumbnail.isNotEmpty
+              ? Image.network(
+                  extractImageUrl(page.postThumbnail),
+                  width: 50, // İstediğiniz thumbnail boyutunu belirleyin
+                  height: 50,
+                  fit: BoxFit.cover,
+                )
+              : const Icon(Icons.image_not_supported), // Yedek resim veya ikon
+          title: Text('${page.postTitle} kategori: ${page.termTaxonomyIds.join(', ')}'),
+          subtitle: Text(page.aciklama_1),
           onTap: () {
-            widget.viewModel.goToDetail(report);
+            widget.viewModel.goToDetail(page);
           },
         );
       },
@@ -457,11 +398,4 @@ class _ReportsViewState extends State<ReportsView> {
       ],
     ));
   }
-}
-
-enum Pages {
-  HOME,
-  MEDIA,
-  ANNOUNCEMENT,
-  SETTINGS,
 }

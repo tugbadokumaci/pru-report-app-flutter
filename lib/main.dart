@@ -1,4 +1,7 @@
 // import 'package:easy_localization/easy_localization.dart';
+import 'dart:io';
+
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'constants/constants.dart';
@@ -12,6 +15,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   DependencyInjection();
   await SharedPreferencesService.initialize();
+  await Firebase.initializeApp();
+
   // await EasyLocalization.ensureInitialized();
 
   // runApp(EasyLocalization(
@@ -20,6 +25,8 @@ Future<void> main() async {
   //   fallbackLocale: Localization.SUPPORTED_LANGUAGES[0],
   //   child: const MyApp(),
   // ));
+  HttpOverrides.global = MyHttpOverrides();
+
   runApp(const MyApp());
 }
 
@@ -86,5 +93,13 @@ class NoAnimationPageTransitionsBuilder extends PageTransitionsBuilder {
     Widget child,
   ) {
     return child; // No animation, return the child directly
+  }
+}
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
   }
 }

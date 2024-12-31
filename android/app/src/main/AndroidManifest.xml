@@ -1,8 +1,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="qr_code_app"
+        android:label="PRUSAM"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+
+        <!-- [START fcm_disable_auto_init] -->
+        <meta-data
+            android:name="firebase_messaging_auto_init_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+        <!-- [END fcm_disable_auto_init] -->
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -29,5 +40,19 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="AIzaSyBuqpVE5wMhXR29mitzgRzJMC8LnZQtQAI" /> <!-- Replace with your actual API key -->
+
+
+        <!-- [START firebase_service] -->
+        <service
+            android:name=".java.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <!-- [END firebase_service] -->
     </application>
 </manifest>

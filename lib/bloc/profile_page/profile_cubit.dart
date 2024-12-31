@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -5,25 +6,44 @@ import '../../constants/constants.dart';
 import '../../shared_preferences_service.dart';
 import '../../utils/resource.dart';
 import '../../utils/utils.dart';
-import 'settings_repository.dart';
-import 'settings_state.dart';
+import 'profile_repository.dart';
+import 'profile_state.dart';
 
-class SettingsCubit extends Cubit<SettingsState> {
+class ProfileCubit extends Cubit<ProfileState> {
   final ProfileRepository _repo;
-  SettingsCubit({
+  ProfileCubit({
     required ProfileRepository repo,
   })  : _repo = repo,
-        super(SettingsInitial());
+        super(ProfileInitial());
+
+  bool isSubscribed = false; // track subscription status
+
+  // Toggles the subscription status and emits the new state
+  void toggleSubscription() {
+    isSubscribed = !isSubscribed;
+  }
 
   TextEditingController passwordController = TextEditingController();
   TextEditingController passwordAgainController = TextEditingController();
 
+  void subscribeToTopic() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    await messaging.subscribeToTopic("bultenler");
+    print("User subscribed to newsletter topic");
+  }
+
+  void unsubscribeFromTopic() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    await messaging.unsubscribeFromTopic("bultenler");
+    print("User unsubscribed from newsletter topic");
+  }
+
   Future<void> getProfile() async {
-    emit(SettingsSuccess());
+    emit(ProfileSuccess());
   }
 
   Future<void> goPasswordPage() async {
-    emit(SettingsPasswordChange());
+    emit(ProfilePasswordChange());
   }
 
   Future<void> deleteAccount(BuildContext context) async {
@@ -55,7 +75,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         onTap: () {
           passwordAgainController.text == '';
           passwordController.text = '';
-          emit(SettingsSuccess());
+          emit(ProfileSuccess());
           Navigator.of(context).pop();
         },
       );
@@ -88,7 +108,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       //   gravity: ToastGravity.TOP,
       // );
     } else {
-      emit(SettingsLoading());
+      emit(ProfileLoading());
       Resource<bool> resource = await _repo.changePassword(passwordController.text);
       if (resource.status == Status.SUCCESS) {
         // const güncelle
@@ -103,7 +123,7 @@ class SettingsCubit extends Cubit<SettingsState> {
           onTap: () {
             passwordAgainController.text == '';
             passwordController.text = '';
-            emit(SettingsSuccess());
+            emit(ProfileSuccess());
             Navigator.of(context).pop();
           },
         );
@@ -123,7 +143,7 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
   Future<void> logOut() async {
-    emit(SettingsLoading());
+    emit(ProfileLoading());
     SharedPreferencesService.clearLocalStorage();
   }
 }

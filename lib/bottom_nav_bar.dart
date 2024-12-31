@@ -1,4 +1,3 @@
-import 'package:qr_code_app/extension/string_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
@@ -34,9 +33,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
             duration: const Duration(milliseconds: 400),
             tabBackgroundColor: const Color(0xff222023),
             color: Colors.grey,
-            tabs: [
+            tabs: const [
               GButton(
-                icon: Icons.dashboard_outlined,
+                icon: Icons.home,
                 // text: LocaleKeys.home_appBarTitle.locale,
                 text: 'Ana Sayfa',
               ),
@@ -46,14 +45,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
                 text: 'Medya',
               ),
               GButton(
-                icon: Icons.announcement,
+                icon: Icons.notifications,
                 // text: LocaleKeys.contact_appBarTitle.locale,
-                text: 'Duyurular',
+                text: 'Bildirimler',
               ),
               GButton(
-                icon: Icons.settings,
+                icon: Icons.person,
                 // text: LocaleKeys.profile_appBarTitle.locale,
-                text: 'Ayarlar',
+                text: 'Hesabım',
               ),
             ],
             selectedIndex: selectedIndex,

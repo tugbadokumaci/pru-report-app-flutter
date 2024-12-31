@@ -4,6 +4,7 @@ import '../../utils/generator.dart';
 import '../../utils/resource.dart';
 
 class ProfileRepository with MixinCardFeature {
+  @override
   RestClient client;
   ProfileRepository(this.client);
   Future<Resource<bool>> changePassword(String newPassword) async {

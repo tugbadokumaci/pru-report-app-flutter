@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:qr_code_app/extension/context_extension.dart';
 
 class MyButtonWidget extends StatelessWidget {
   final BuildContext context;
@@ -9,7 +8,7 @@ class MyButtonWidget extends StatelessWidget {
   final void Function()? onPressed;
   final bool enabled;
 
-  const MyButtonWidget({
+  const MyButtonWidget({super.key, 
     required this.context,
     required this.buttonColor,
     required this.content,
@@ -25,8 +24,8 @@ class MyButtonWidget extends StatelessWidget {
       child: ElevatedButton(
         onPressed: enabled ? onPressed : null,
         style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.all<Color>(buttonColor),
-          shape: MaterialStateProperty.all<OutlinedBorder>(
+          backgroundColor: WidgetStateProperty.all<Color>(buttonColor),
+          shape: WidgetStateProperty.all<OutlinedBorder>(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
               side: BorderSide(

@@ -1,21 +1,21 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qr_code_app/bloc/settings_page/settings_cubit.dart';
+import 'package:qr_code_app/bloc/profile_page/profile_cubit.dart';
 import '../../bottom_nav_bar.dart';
 import '../../constants/constants.dart';
 import '../../utils/custom_colors.dart';
 import '../../utils/custom_text_styles.dart';
 import '../../widget/lottie_widget.dart';
-import 'settings_state.dart';
+import 'profile_state.dart';
 import 'package:flutter/cupertino.dart';
 
-class SettingsView extends StatefulWidget {
-  SettingsCubit viewModel;
-  SettingsView({super.key, required this.viewModel});
+class ProfileView extends StatefulWidget {
+  ProfileCubit viewModel;
+  ProfileView({super.key, required this.viewModel});
 
   @override
-  State<SettingsView> createState() => _SettingsViewState();
+  State<ProfileView> createState() => _ProfileViewState();
 }
 
 List<Image> images = [
@@ -33,29 +33,21 @@ List<String> languages = ["Türkçe", "English", "Deutch"];
 
 int dropdownIndex = 0; // otherwise will be assign to the index 0 after clicks
 
-class _SettingsViewState extends State<SettingsView> {
-  bool switchValue1 = true;
-  bool switchValue2 = true;
-  bool switchValue3 = true;
-  bool switchValue4 = true;
+class _ProfileViewState extends State<ProfileView> {
+  // String? fcmToken;
+
+  bool switchValue1 = false;
+  bool switchValue2 = false;
+  bool switchValue3 = false;
+  bool switchValue4 = false; // isSubscribed
 
   int _selectedIndex = Pages.PROFILE.index;
-  int _selectedIndexDrawer = 0;
-  static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Görünüm',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Limanlar, Deniz ve Açık Deniz',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: Gemi İnşaa/Bakım Onarım/Geri Dönüşüm',
-      style: optionStyle,
-    ),
-  ];
+  final int _selectedIndexDrawer = 0;
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _initializeFCM();
+  // }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -63,9 +55,60 @@ class _SettingsViewState extends State<SettingsView> {
     });
   }
 
+  // Future<void> _initializeFCM() async {
+  //   FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  //   // Kullanıcıdan izin iste
+  //   NotificationSettings settings = await messaging.requestPermission(
+  //     alert: true,
+  //     badge: true,
+  //     sound: true,
+  //   );
+
+  //   if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+  //     // FCM Token al
+  //     String? token = await messaging.getToken();
+  //     setState(() {
+  //       fcmToken = token;
+  //     });
+  //     print("FCM Token: $token");
+  //   } else {
+  //     print("Bildirim izni verilmedi.");
+  //   }
+
+  //   // Gelen bildirimleri dinle
+  //   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  //     if (message.notification != null) {
+  //       // Bildirim içeriği
+  //       _showNotificationDialog(
+  //         title: message.notification!.title ?? 'Bildirim',
+  //         body: message.notification!.body ?? 'İçerik',
+  //       );
+  //     }
+  //   });
+  // }
+
+  // void _showNotificationDialog({required String title, required String body}) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text(title),
+  //         content: Text(body),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.pop(context),
+  //             child: const Text('Tamam'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<SettingsCubit>(
+    return BlocProvider<ProfileCubit>(
       create: (context) => widget.viewModel,
       child: _buildScaffold(context),
     );
@@ -76,7 +119,7 @@ class _SettingsViewState extends State<SettingsView> {
       child: Scaffold(
         appBar: AppBar(
           // title: Text(LocaleKeys.home_appBarTitle.locale, style: CustomTextStyles2.appBarTextStyle(context)),
-          title: Text('Ayarlar', style: CustomTextStyles2.appBarTextStyle(context)),
+          title: Text('Hesabım', style: CustomTextStyles2.appBarTextStyle(context)),
           centerTitle: true,
           automaticallyImplyLeading: false,
           leading: Builder(
@@ -92,18 +135,24 @@ class _SettingsViewState extends State<SettingsView> {
         ),
         backgroundColor: Colors.white,
         body: SingleChildScrollView(
-            child: BlocConsumer<SettingsCubit, SettingsState>(
-          listener: ((context, state) {}),
+            child: BlocConsumer<ProfileCubit, ProfileState>(
+          listener: (context, state) {
+            // if (state is SubscriptionStatusChanged) {
+            //   setState(() {
+            //     switchValue4 = state.isSubscribed; // Update the subscription status
+            //   });
+            // }
+          },
           builder: (context, state) {
             debugPrint('Scan View State is : $state');
-            if (state is SettingsInitial) {
+            if (state is ProfileInitial) {
               // widget.viewModel.getData();
               return _buildInitial();
-            } else if (state is SettingsLoading) {
+            } else if (state is ProfileLoading) {
               return _buildLoading();
-            } else if (state is SettingsSuccess) {
+            } else if (state is ProfileSuccess) {
               return Container();
-            } else if (state is SettingsError) {
+            } else if (state is ProfileError) {
               return _buildError(context);
             }
             return Container();
@@ -116,119 +165,113 @@ class _SettingsViewState extends State<SettingsView> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xff37B6AE),
+              decoration: const BoxDecoration(
+                color: Color(0xff1E376E),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('PUSURA', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                  Text('Piri Reis University', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                  Text('SUSTAINABILITY RESEARCH AND APPLICATION CENTER',
+                  Text('PRUSAM', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                  Text('PÎRÎ REİS ÜNİVERSİTESİ', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                  Text('SÜRDÜRÜLEBİLİRLİK ARAŞTIRMA VE UYGULAMA MERKEZİ',
                       style: CustomTextStyles2.drawerTitleTextStyle(context)),
                 ],
               ),
             ),
             ListTile(
-              title: const Text('Görünüm'),
+              title: const Text('Hakkımızda'),
               selected: _selectedIndexDrawer == 0,
               onTap: () {
                 // Update the state of the app
                 _onItemTapped(0);
                 // Then close the drawer
-                Navigator.pop(context);
+                Navigator.pushNamed(context, '/aboutUs');
               },
             ),
-            const ExpansionTile(
-              title: const Text('Limanlar, Deniz ve Açık Deniz'),
+            ExpansionTile(
+              title: const Text('Araştırma'),
               children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
+                ListTile(
+                  title: const Text("Avrupa Birliği Projeleri"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/projectsRoute');
+                  },
+                ),
+                ListTile(
+                  title: const Text("Tübitak Projeleri"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/home');
+                  },
+                ),
+                ListTile(
+                  title: const Text("BAP Projeleri"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/home');
+                  },
+                ),
+                ListTile(
+                  title: const Text("Sanayi-Üniversite İşbirliği Projeleri"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/home');
+                  },
+                ),
+                ListTile(
+                  title: const Text("Diğer Projeler"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/home');
+                  },
+                ),
               ],
-              // onTap: () {
-              // _onItemTapped(1);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
             ),
-            const ExpansionTile(
-              title: const Text('Gemi İnşaa/Bakım Onarım/Geri Dönüşüm'),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
+            ListTile(
+              title: const Text('Etkinlikler'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                // Navigator.pushNamed(context, '/sampleReport');
+                Navigator.pushNamed(context, '/home');
+              },
+              selected: _selectedIndexDrawer == 2,
             ),
-            const ExpansionTile(
-              title: Text("Deniz İşletmeciliği/Gemi Donatımı/Yeşil Finans"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
+            ListTile(
+              title: const Text('Haberler'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                // Navigator.pushNamed(context, '/sampleReport');
+                Navigator.pushNamed(context, '/newsRoute');
+              },
+              selected: _selectedIndexDrawer == 3,
             ),
-            const ExpansionTile(
-              title: Text("Teknolojiler/Yakıtlar/Dekarbonizasyon"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
+            ListTile(
+              title: const Text('Bültenler'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                // Navigator.pushNamed(context, '/sampleReport');
+                Navigator.pushNamed(context, '/bulletinRoute');
+              },
+              selected: _selectedIndexDrawer == 4,
             ),
-            const ExpansionTile(
-              title: Text("Balıkçılık/Su Ürünleri"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
+            ListTile(
+              title: const Text('Kütüphane'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/home');
+              },
+              selected: _selectedIndexDrawer == 5,
             ),
-            const ExpansionTile(
-              title: Text("Eğitim"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
-            )
+            ListTile(
+              title: const Text('İletişim'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/contact');
+              },
+              selected: _selectedIndexDrawer == 6,
+            ),
           ],
         )),
       ),
@@ -262,11 +305,11 @@ class _SettingsViewState extends State<SettingsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Bildirim Ayarları',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: CupertinoSwitch(
@@ -280,7 +323,7 @@ class _SettingsViewState extends State<SettingsView> {
                 });
               },
             ),
-            title: Text('Yeni Analiz Raporu Bildirimleri'),
+            title: const Text('Yeni Analiz Raporu Bildirimleri'),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -295,7 +338,7 @@ class _SettingsViewState extends State<SettingsView> {
                 });
               },
             ),
-            title: Text('Yeni Video Bildirimleri'),
+            title: const Text('Yeni Video Bildirimleri'),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -310,7 +353,7 @@ class _SettingsViewState extends State<SettingsView> {
                 });
               },
             ),
-            title: Text('Yeni Haber Bildirimleri'),
+            title: const Text('Yeni Haber Bildirimleri'),
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
@@ -319,15 +362,36 @@ class _SettingsViewState extends State<SettingsView> {
               value: switchValue4,
               activeColor: CupertinoColors.systemGreen,
               onChanged: (bool? value) {
-                // This is called when the user toggles the switch.
                 setState(() {
                   switchValue4 = value ?? false;
                 });
+                if (switchValue4) {
+                  widget.viewModel.subscribeToTopic();
+                } else {
+                  widget.viewModel.unsubscribeFromTopic();
+                }
+                // if (value != null) {
+                //             context.read<ProfileCubit>().toggleSubscription();
+                //           }
               },
             ),
-            title: Text('Yeni Duyuru Bildirimleri'),
+            title: const Text('Yeni Bültenler Bildirimi'),
           ),
-          Text('Current version 1.0.0')
+          const Text('Current version 1.0.0'),
+          // Center(
+          //   child: fcmToken == null
+          //       ? const CircularProgressIndicator()
+          //       : Column(
+          //           mainAxisAlignment: MainAxisAlignment.center,
+          //           children: [
+          //             const Text('FCM Token:'),
+          //             Padding(
+          //               padding: const EdgeInsets.all(8.0),
+          //               child: SelectableText(fcmToken ?? ''),
+          //             ),
+          //           ],
+          //         ),
+          // ),
         ],
       ),
     );

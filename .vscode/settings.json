@@ -1,3 +1,5 @@
 {
-    "cmake.sourceDirectory": "/Users/tugbadokumaci/Desktop/pru_project/linux"
+    "cmake.sourceDirectory": "/Users/tugbadokumaci/Desktop/pru_project/linux",
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "automatic"
 }

@@ -1,9 +1,9 @@
 import 'package:qr_code_app/utils/generator.dart';
 
-class MediaRepository {
-  MediaRepository(RestClient restClient);
-  // Future<String> scan() async {
-  //   final result = await BarcodeScanner.scan();
-  //   return result.rawContent;
-  // }
+import '../../inheritance/mixin_card_feature.dart';
+
+class MediaRepository with MixinCardFeature {
+  @override
+  RestClient client;
+  MediaRepository(this.client);
 }

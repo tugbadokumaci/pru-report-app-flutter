@@ -2,9 +2,12 @@ import 'package:qr_code_app/utils/generator.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 
+import 'bloc/bulletin_page/bulletin_repository.dart';
 import 'bloc/home_page/home_repository.dart';
+import 'bloc/news_page/news_repository.dart';
+import 'bloc/projects_page/projects_repository.dart';
 import 'bloc/reports_page/reports_repository.dart';
-import 'bloc/settings_page/settings_repository.dart';
+import 'bloc/profile_page/profile_repository.dart';
 import 'bloc/announcement_page/announcement_repository.dart';
 import 'bloc/media_page/media_repository.dart';
 import 'bloc/welcome_page/welcome_repository.dart';
@@ -35,5 +38,8 @@ class DependencyInjection {
     locator.registerFactory<AnnouncementRepository>(() => AnnouncementRepository(locator<RestClient>()));
     locator.registerFactory<ProfileRepository>(() => ProfileRepository(locator<RestClient>()));
     locator.registerFactory<ReportsRepository>(() => ReportsRepository(locator<RestClient>()));
+    locator.registerFactory<NewsRepository>(() => NewsRepository(locator<RestClient>()));
+    locator.registerFactory<BulletinRepository>(() => BulletinRepository(locator<RestClient>()));
+    locator.registerFactory<ProjectsRepository>(() => ProjectsRepository(locator<RestClient>()));
   }
 }

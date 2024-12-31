@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../bottom_nav_bar.dart';
 import '../../constants/constants.dart';
+import '../../utils/custom_bottom_nav_bar.dart';
 import '../../utils/custom_colors.dart';
 import '../../utils/custom_text_styles.dart';
 import '../../widget/lottie_widget.dart';
@@ -60,22 +60,8 @@ class _AnnouncementViewState extends State<AnnouncementView> {
     super.initState();
   }
 
-  int _selectedIndexDrawer = 0;
+  final int _selectedIndexDrawer = 0;
   static const TextStyle optionStyle = TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Görünüm',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Limanlar, Deniz ve Açık Deniz',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: Gemi İnşaa/Bakım Onarım/Geri Dönüşüm',
-      style: optionStyle,
-    ),
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -92,7 +78,7 @@ class _AnnouncementViewState extends State<AnnouncementView> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Duyurular', style: CustomTextStyles2.appBarTextStyle(context)),
+          title: Text('Bildirimler', style: CustomTextStyles2.appBarTextStyle(context)),
           centerTitle: true,
           automaticallyImplyLeading: false,
           leading: Builder(
@@ -124,150 +110,128 @@ class _AnnouncementViewState extends State<AnnouncementView> {
             return Container();
           },
         )),
-        bottomNavigationBar: buildBottomNavigationBar,
+        bottomNavigationBar: CustomNavigationBar(
+            selectedIndex: _selectedIndex,
+            onTabChange: (int index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+            }),
         drawer: Drawer(
             child: ListView(
           // Important: Remove any padding from the ListView.
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xff37B6AE),
+              decoration: const BoxDecoration(
+                color: Color(0xff1E376E),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('PUSURA', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                  Text('Piri Reis University', style: CustomTextStyles2.drawerTitleTextStyle(context)),
-                  Text('SUSTAINABILITY RESEARCH AND APPLICATION CENTER',
+                  Text('PRUSAM', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                  Text('PÎRÎ REİS ÜNİVERSİTESİ', style: CustomTextStyles2.drawerTitleTextStyle(context)),
+                  Text('SÜRDÜRÜLEBİLİRLİK ARAŞTIRMA VE UYGULAMA MERKEZİ',
                       style: CustomTextStyles2.drawerTitleTextStyle(context)),
                 ],
               ),
             ),
             ListTile(
-              title: const Text('Görünüm'),
+              title: const Text('Hakkımızda'),
               selected: _selectedIndexDrawer == 0,
               onTap: () {
                 // Update the state of the app
                 _onItemTapped(0);
                 // Then close the drawer
-                Navigator.pop(context);
+                Navigator.pushNamed(context, '/aboutUs');
               },
             ),
-            const ExpansionTile(
-              title: const Text('Limanlar, Deniz ve Açık Deniz'),
+            ExpansionTile(
+              title: const Text('Araştırma'),
               children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
+                ListTile(
+                  title: const Text("Avrupa Birliği Projeleri"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/projectsRoute');
+                  },
+                ),
+                ListTile(
+                  title: const Text("Tübitak Projeleri"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/home');
+                  },
+                ),
+                ListTile(
+                  title: const Text("BAP Projeleri"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/home');
+                  },
+                ),
+                ListTile(
+                  title: const Text("Sanayi-Üniversite İşbirliği Projeleri"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/home');
+                  },
+                ),
+                ListTile(
+                  title: const Text("Diğer Projeler"),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/home');
+                  },
+                ),
               ],
-              // onTap: () {
-              // _onItemTapped(1);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
             ),
-            const ExpansionTile(
-              title: const Text('Gemi İnşaa/Bakım Onarım/Geri Dönüşüm'),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
+            ListTile(
+              title: const Text('Etkinlikler'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                // Navigator.pushNamed(context, '/sampleReport');
+                Navigator.pushNamed(context, '/home');
+              },
+              selected: _selectedIndexDrawer == 2,
             ),
-            const ExpansionTile(
-              title: Text("Deniz İşletmeciliği/Gemi Donatımı/Yeşil Finans"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
+            ListTile(
+              title: const Text('Haberler'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                // Navigator.pushNamed(context, '/sampleReport');
+                Navigator.pushNamed(context, '/newsRoute');
+              },
+              selected: _selectedIndexDrawer == 3,
             ),
-            const ExpansionTile(
-              title: Text("Teknolojiler/Yakıtlar/Dekarbonizasyon"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
+            ListTile(
+              title: const Text('Bültenler'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                // Navigator.pushNamed(context, '/sampleReport');
+                Navigator.pushNamed(context, '/bulletinRoute');
+              },
+              selected: _selectedIndexDrawer == 4,
             ),
-            const ExpansionTile(
-              title: Text("Balıkçılık/Su Ürünleri"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
+            ListTile(
+              title: const Text('Kütüphane'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/home');
+              },
+              selected: _selectedIndexDrawer == 5,
             ),
-            const ExpansionTile(
-              title: Text("Eğitim"),
-              children: <Widget>[
-                Text("Görünüm"),
-                Text("Gelişim İndexleri"),
-                Text("Politikalar"),
-                Text("Öncelikler"),
-                Text("Yol Haritesı ve Hareketlilikler"),
-              ],
-              // onTap: () {
-              //   _onItemTapped(2);
-              //   Navigator.pop(context);
-              // },
-              // selected: _selectedIndexDrawer == 2,
-            )
+            ListTile(
+              title: const Text('İletişim'),
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/contact');
+              },
+              selected: _selectedIndexDrawer == 6,
+            ),
           ],
         )),
       ),
-    );
-  }
-
-  CustomBottomNavigationBar get buildBottomNavigationBar {
-    return CustomBottomNavigationBar(
-      onTabChange: (int index) {
-        setState(() {
-          _selectedIndex = index;
-        });
-        switch (index) {
-          case 0:
-            Navigator.pushNamed(context, '/home');
-          case 1:
-            Navigator.pushNamed(context, '/media', arguments: -1);
-          case 2:
-            Navigator.pushNamed(context, '/announcement');
-          case 3:
-            Navigator.pushNamed(context, '/profile');
-        }
-      },
-      selectedIndex: _selectedIndex,
     );
   }
 
@@ -278,7 +242,7 @@ class _AnnouncementViewState extends State<AnnouncementView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Use Expanded to allow the ListView to take remaining space
-          Container(height: 600, width: 600, child: _verticalCards(announcementItems)),
+          SizedBox(height: 600, width: 600, child: _verticalCards(announcementItems)),
         ],
       ),
     );
@@ -289,9 +253,9 @@ class _AnnouncementViewState extends State<AnnouncementView> {
       itemCount: items.length,
       itemBuilder: (context, index) {
         return Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.0),
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: ListTile(
-            leading: Icon(Icons.star),
+            leading: const Icon(Icons.star),
             title: Text(items[index].title),
             subtitle: Text(items[index].description),
             onTap: () {

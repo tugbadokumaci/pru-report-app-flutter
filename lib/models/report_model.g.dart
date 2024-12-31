@@ -14,9 +14,10 @@ ReportModel _$ReportModelFromJson(Map<String, dynamic> json) => ReportModel(
       reportText: json['reportText'] as String,
     );
 
-Map<String, dynamic> _$ReportModelToJson(ReportModel instance) => <String, dynamic>{
+Map<String, dynamic> _$ReportModelToJson(ReportModel instance) =>
+    <String, dynamic>{
       'reportId': instance.reportId,
-      'reportDate': instance.reportDate,
+      'reportDate': instance.reportDate.toIso8601String(),
       'reportTitle': instance.reportTitle,
       'reportDescription': instance.reportDescription,
       'reportText': instance.reportText,

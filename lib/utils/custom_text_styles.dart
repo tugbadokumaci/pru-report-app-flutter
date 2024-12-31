@@ -102,19 +102,25 @@ class CustomTextStyles2 {
   }
 }
 
+class CustomStyles {
+  static TextStyle sectionTitle(BuildContext context) {
+    return Theme.of(context).textTheme.headlineMedium!.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        );
+  }
 
-// abstract class AppStyle {
-//   TextStyle buttonTextStyle(BuildContext context, Color textColor) {
-//     return Theme.of(context).textTheme.titleMedium!.copyWith(
-//           color: textColor,
-//           fontWeight: FontWeight.bold,
-//         );
-//   }
+  static TextStyle sectionContent(BuildContext context) {
+    return Theme.of(context).textTheme.bodyLarge!.copyWith(
+          color: Colors.black87,
+        );
+  }
 
-//   TextStyle titleTextStyle(BuildContext context, Color textColor) {
-//     return Theme.of(context).textTheme.headlineMedium!.copyWith(
-//           color: textColor,
-//           fontWeight: FontWeight.bold,
-//         );
-//   }
-// }
+  static Widget sectionDivider() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      height: 2,
+      color: Colors.blue,
+    );
+  }
+}

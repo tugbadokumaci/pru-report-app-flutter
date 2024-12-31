@@ -1,12 +1,15 @@
 import 'dart:convert';
 
+import 'package:qr_code_app/models/eu_project_model.dart';
 import 'package:qr_code_app/utils/resource.dart';
 import 'package:dio/dio.dart' hide Headers;
 import 'package:flutter/material.dart';
 import 'package:retrofit/retrofit.dart';
 
+import '../models/bulletin_model.dart';
 import '../models/card_model.dart';
-import '../models/report_model.dart';
+import '../models/news_model.dart';
+import '../models/post_model.dart';
 import '../models/user_model.dart';
 import '../constants/constants.dart';
 
@@ -22,21 +25,49 @@ abstract class RestClient {
     return RestClient(dio);
   }
 
-  @POST('/pru/getallreports.php')
+  // @GET('/getallpages.php')
+  // @Headers(<String, dynamic>{
+  //   "Content-Type": "application/json",
+  //   "charset": "utf-8",
+  // })
+  // Future<Resource<List<PageModel>>> getAllPages();
+
+  @GET('/getallprojects.php')
   @Headers(<String, dynamic>{
     "Content-Type": "application/json",
     "charset": "utf-8",
   })
-  Future<Resource<List<ReportModel>>> getAllReports();
+  Future<Resource<List<EUProjectModel>>> getAllProjects();
 
-  @POST('/qr_code_app/getcards.php')
+  @GET('/getallnews.php')
   @Headers(<String, dynamic>{
     "Content-Type": "application/json",
     "charset": "utf-8",
   })
-  Future<Resource<List<CardModel>>> getCards(@Body() Map<String, dynamic> userId);
+  Future<Resource<List<News>>> getAllNews();
 
-  @POST('/qr_code_app/getsavedcards.php')
+  @GET('/getallbulletin.php')
+  @Headers(<String, dynamic>{
+    "Content-Type": "application/json",
+    "charset": "utf-8",
+  })
+  Future<Resource<List<Bulletin>>> getAllBulletin();
+
+  @GET('/getallposts.php')
+  @Headers(<String, dynamic>{
+    "Content-Type": "application/json",
+    "charset": "utf-8",
+  })
+  Future<Resource<List<PostModel>>> getAllPosts();
+
+  // @POST('/getcards.php')
+  // @Headers(<String, dynamic>{
+  //   "Content-Type": "application/json",
+  //   "charset": "utf-8",
+  // })
+  // Future<Resource<List<CardModel>>> getCards(@Body() Map<String, dynamic> userId);
+
+  @POST('/getsavedcards.php')
   @Headers(<String, dynamic>{
     "Content-Type": "application/json",
     "charset": "utf-8",
@@ -50,14 +81,14 @@ abstract class RestClient {
   // })
   // Future<Resource<List<CardModel>>> getSavedCards(@Body() Map<String, dynamic> userId);
 
-  @POST('/qr_code_app/register.php')
+  @POST('/register.php')
   @Headers(<String, dynamic>{
     "Content-Type": "application/json",
     "charset": "utf-8",
   })
   Future<Resource<UserModel>> signup(@Body() Map<String, dynamic> user);
 
-  @POST('/qr_code_app/login.php')
+  @POST('/login.php')
   @Headers(
       <String, dynamic>{"Content-Type": "application/json", "charset": "utf-8", "Access-Control-Allow-Origin": "*"})
   Future<Resource<UserModel>> login(@Body() Map<String, dynamic> user);

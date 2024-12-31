@@ -24,7 +24,7 @@ class Utils {
               onPressed: () {
                 onTap();
               },
-              child: Text(
+              child: const Text(
                   'Ok'
                   // LocaleKeys.profile_ok.locale
                   ,
@@ -65,13 +65,13 @@ class Utils {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text(
+                  child: const Text(
                       'Go Back'
                       // LocaleKeys.profile_goBackButton.locale
                       ,
                       style: TextStyle(color: Colors.blue)),
                 ),
-                Divider(
+                const Divider(
                   color: Colors.black87,
                   height: 10.0,
                   // indent: 5.0, // Starting Space
